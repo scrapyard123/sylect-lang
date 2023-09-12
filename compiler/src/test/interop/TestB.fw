@@ -1,0 +1,3 @@
+class TestB : TestA
+constructor():void { return }
+b():int { return 2 }
