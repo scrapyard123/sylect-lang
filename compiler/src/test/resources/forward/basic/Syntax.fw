@@ -24,6 +24,10 @@ constructor():void {
 
 // Parameters are not separated by commas.
 testMethod(a:int):int {
+    // You can call methods as following. If you haven't imported a class,
+    // you can refer to it with a fully-qualified identifier.
+    java.lang.System->out->println("Hello, World!")
+
     // Typing is static and strong. Variable declaration always requires type.
     // Supported primitive types are int, long, float and double.
     var var1:int unused:double
@@ -33,7 +37,7 @@ testMethod(a:int):int {
     // Lack of semicolons means that you can chain statements.
     var e:int e = (10 > 5) + (10L < 5L)
 
-    if -4F > -8F {
+    if -4.5F > -8F {
         e = e + 1
     } else {
         e = e - 1
@@ -51,5 +55,5 @@ testMethod(a:int):int {
 // Fields and methods can be static.
 static f2:long
 static staticTestMethod():PrintStream {
-    return java.lang.System->out
+    return java.lang.System->err
 }

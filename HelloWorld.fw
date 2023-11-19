@@ -1,0 +1,13 @@
+import {
+    java.lang.String
+    java.lang.System
+}
+
+class HelloWorld
+
+constructor():void { return }
+
+static main(args:String[]):void {
+    System->out->println("Hello, World!")
+    return
+}

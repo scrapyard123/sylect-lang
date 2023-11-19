@@ -9,6 +9,12 @@ public record TypeMeta(Kind kind, boolean isArray, String className) {
     public static TypeMeta fromContext(ScopeManager scopeManager, TypeContext ctx) {
         var typeString = ctx.getText();
 
+        boolean isArray = false;
+        if (typeString.endsWith("[]")) {
+            isArray = true;
+            typeString = typeString.substring(0, typeString.length() - 2);
+        }
+
         var kind = switch (typeString) {
             case "void" -> Kind.VOID;
             case "int" -> Kind.INTEGER;
@@ -18,7 +24,7 @@ public record TypeMeta(Kind kind, boolean isArray, String className) {
             default -> Kind.CLASS;
         };
         return new TypeMeta(
-                kind, false,
+                kind, isArray,
                 kind == Kind.CLASS ? scopeManager.resolveImport(typeString) : null);
     }
 

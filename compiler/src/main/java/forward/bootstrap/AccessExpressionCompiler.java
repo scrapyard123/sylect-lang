@@ -15,7 +15,6 @@ import org.objectweb.asm.Opcodes;
 import java.util.List;
 import java.util.Objects;
 
-// TODO: Refactor code
 public class AccessExpressionCompiler {
     private final ScopeManager scopeManager;
     private final MethodVisitor mv;
@@ -128,17 +127,16 @@ public class AccessExpressionCompiler {
     }
 
     private AccessMeta compileLocalMethodCall(String identifier, List<ExpressionContext> arguments) {
-        var method = scopeManager.getMethod(identifier);
+        // We always add target object (ourselves) to the stack
+        mv.visitVarInsn(Opcodes.ALOAD, 0);
+
+        var parameterTypes = compileArguments(arguments);
+        var method = scopeManager.getMethod(identifier, parameterTypes);
+
         if (method == null) {
             throw new CompilationException(
                     "unknown method: " + identifier + " in " + scopeManager.getClassMeta().name());
         }
-
-        if (!method.isStatic()) {
-            mv.visitVarInsn(Opcodes.ALOAD, 0);
-        }
-
-        compileArguments(arguments);
 
         var classMeta = scopeManager.getClassMeta();
         var owner = ClassMeta.javaClassFromClassName(classMeta.name());
@@ -154,6 +152,15 @@ public class AccessExpressionCompiler {
                         classMeta.isInterface());
             }
         }
+
+        // Remove target object if it was not required
+        if (method.isStatic()) {
+            if (method.returnType().kind() != Kind.VOID) {
+                mv.visitInsn(Opcodes.SWAP);
+            }
+            mv.visitInsn(Opcodes.POP);
+        }
+
         return new AccessMeta(null, method.returnType());
     }
 
@@ -161,7 +168,9 @@ public class AccessExpressionCompiler {
             AccessMeta accessMeta, String identifier, List<ExpressionContext> arguments) {
         // If parent term is a class name, don't expect object on stack
         if (accessMeta.isClassMeta()) {
-            var method = scopeManager.getMethod(accessMeta.classMeta(), identifier);
+            var parameterTypes = compileArguments(arguments);
+            var method = scopeManager.getMethod(accessMeta.classMeta(), identifier, parameterTypes);
+
             if (method == null) {
                 throw new CompilationException(
                         "unknown method: " + identifier + " in " + accessMeta.classMeta().name());
@@ -170,8 +179,6 @@ public class AccessExpressionCompiler {
                 throw new CompilationException(
                         "method is not static: " + identifier + " in " + accessMeta.classMeta().name());
             }
-
-            compileArguments(arguments);
 
             var classMeta = accessMeta.classMeta();
             var owner = ClassMeta.javaClassFromClassName(classMeta.name());
@@ -184,16 +191,12 @@ public class AccessExpressionCompiler {
             }
 
             var classMeta = scopeManager.resolveClass(accessMeta.typeMeta().className());
-            var method = scopeManager.getMethod(classMeta, identifier);
+            var parameterTypes = compileArguments(arguments);
+            var method = scopeManager.getMethod(classMeta, identifier, parameterTypes);
+
             if (method == null) {
                 throw new CompilationException("unknown method: " + identifier + " in " + classMeta);
             }
-
-            if (method.isStatic()) {
-                mv.visitInsn(Opcodes.POP);
-            }
-
-            compileArguments(arguments);
 
             var owner = ClassMeta.javaClassFromClassName(classMeta.name());
             if (method.isStatic()) {
@@ -209,16 +212,23 @@ public class AccessExpressionCompiler {
                 }
             }
 
+            // Remove target object if it was not required
+            if (method.isStatic()) {
+                if (method.returnType().kind() != Kind.VOID) {
+                    mv.visitInsn(Opcodes.SWAP);
+                }
+                mv.visitInsn(Opcodes.POP);
+            }
+
             return new AccessMeta(null, method.returnType());
         } else {
             throw new CompilationException("unsupported access type: " + accessMeta);
         }
     }
 
-    private void compileArguments(List<ExpressionContext> arguments) {
-        for (ExpressionContext expressionCtx : arguments) {
-            // TODO: Check and convert types
-            new ExpressionCompiler(scopeManager, mv).compile(expressionCtx);
-        }
+    private List<TypeMeta> compileArguments(List<ExpressionContext> arguments) {
+        return arguments.stream()
+                .map(expressionCtx -> new ExpressionCompiler(scopeManager, mv).compile(expressionCtx))
+                .toList();
     }
 }

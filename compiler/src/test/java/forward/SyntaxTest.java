@@ -15,7 +15,7 @@ public class SyntaxTest extends AbstractCompilerTest {
             Assertions.assertEquals(20, result);
 
             result = callMethod(obj, "staticTestMethod");
-            Assertions.assertEquals(System.out, result);
+            Assertions.assertEquals(System.err, result);
         });
     }
 }

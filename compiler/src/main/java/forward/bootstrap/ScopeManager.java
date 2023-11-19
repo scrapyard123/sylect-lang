@@ -10,10 +10,12 @@ import forward.bootstrap.metadata.ClassMeta;
 import forward.bootstrap.metadata.FieldMeta;
 import forward.bootstrap.metadata.LocalMeta;
 import forward.bootstrap.metadata.MethodMeta;
+import forward.bootstrap.metadata.ParameterMeta;
 import forward.bootstrap.metadata.TypeMeta;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
@@ -119,25 +121,29 @@ public class ScopeManager {
         return currentClassFieldMeta;
     }
 
-    public MethodMeta getMethod(String name) {
-        return getMethod(classMeta, name);
+    public MethodMeta getMethod(String name, List<TypeMeta> parameterTypes) {
+        return getMethod(classMeta, name, parameterTypes);
     }
 
-    public MethodMeta getMethod(ClassMeta classMeta, String name) {
+    public MethodMeta getMethod(ClassMeta classMeta, String name, List<TypeMeta> parameterTypes) {
         var currentClassMethodMeta = classMeta.methods().stream()
                 .filter(methodMeta -> name.equals(methodMeta.name()))
+                .filter(methodMeta -> methodMeta.parameters().stream()
+                        .map(ParameterMeta::type)
+                        .toList().equals(parameterTypes))
                 .findFirst()
                 .orElse(null);
+
         if (currentClassMethodMeta == null) {
             if (classMeta.isInterface()) {
                 for (String interfaze : classMeta.interfaces()) {
-                    return getMethod(resolveClass(interfaze), name);
+                    return getMethod(resolveClass(interfaze), name, parameterTypes);
                 }
             } else {
                 if (classMeta.baseClassName() == null) {
                     return null;
                 }
-                return getMethod(resolveClass(classMeta.baseClassName()), name);
+                return getMethod(resolveClass(classMeta.baseClassName()), name, parameterTypes);
             }
         }
         return currentClassMethodMeta;

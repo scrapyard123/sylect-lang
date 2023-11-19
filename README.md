@@ -7,25 +7,23 @@ MOST THINGS ARE BARELY WORKING OR OUTRIGHT BROKEN.**
 
 ## Getting Started
 
-Since language doesn't support arrays and method overloading yet, you'll need some bootstrap Java class with `main`
-method and I/O helper methods, see `compiler/src/test/interop` and `compiler/src/test/java/forward/TestUtils.java`
-for examples.
-
 1. Install JDK 17+.
 2. Run `./gradlew build` on Unixes or `gradlew build` on Windows.
 3. Read `IDE.md` on how to set up your IDE for Forward.
 4. Read `compiler/src/test/resources/forward/Syntax.fw` to familiarize yourself with language syntax.
-5. Compile your program with `java -jar compiler/build/libs/compiler.jar YourSourceFile.fw`.
+5. Compile an example with `java -jar compiler/build/libs/compiler.jar HelloWorld.fw` and run `java HelloWorld`.
+6. Read `compiler/src/test/resources/forward/Algorithms.fw` for more advanced examples.
 
 ## TODO
 
 Features are listed in order of their priority.
 
-- Type checks (+overloading support) and conversions for method calls.
-- String type support.
-- Array support or alternative (will enable `main` method support).
+- Support objects as targets in access expressions.
+- Support usefully minimal set of operators.
+- Full array support (create, access).
+- Add automatic conversions for types supported only in Java.
+- Decide on OOP approach (private/protected support, interfaces).
 - Write extensive feature tests.
-- Support all operators.
 - Add break and continue.
 - Templating support (using source text templates).
 - Lambda support (by compiling source at runtime).

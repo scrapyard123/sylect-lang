@@ -65,17 +65,21 @@ public class ExpressionCompiler {
 
         if (ctx.LITERAL() != null) {
             var kind = (TypeMeta.Kind) null;
+            var className = (String) null;
 
-            var term = ctx.getText();
             var literal = ctx.LITERAL().getText();
-            if (term.endsWith("L")) {
+            if (literal.startsWith("\"") && literal.endsWith("\"")) {
+                kind = Kind.CLASS;
+                className = "java.lang.String";
+                literal = literal.substring(1, literal.length() - 1);
+            } else if (literal.endsWith("F")) {
+                kind = Kind.FLOAT;
+                literal = literal.substring(0, literal.length() - 1);
+            } else if (literal.endsWith("L")) {
                 kind = Kind.LONG;
+                literal = literal.substring(0, literal.length() - 1);
             } else if (literal.contains(".")) {
-                if (term.endsWith("F")) {
-                    kind = Kind.FLOAT;
-                } else {
-                    kind = Kind.DOUBLE;
-                }
+                kind = Kind.DOUBLE;
             } else {
                 kind = Kind.INTEGER;
             }
@@ -85,10 +89,11 @@ public class ExpressionCompiler {
                 case LONG -> mv.visitLdcInsn(Long.parseLong(literal));
                 case FLOAT -> mv.visitLdcInsn(Float.parseFloat(literal));
                 case DOUBLE -> mv.visitLdcInsn(Double.parseDouble(literal));
+                case CLASS -> mv.visitLdcInsn(literal);
                 default -> throw new CompilationException("unsupported literal type: " + kind);
             }
 
-            operandType = new TypeMeta(kind, false, null);
+            operandType = new TypeMeta(kind, false, className);
         }
 
         if (ctx.accessExpression() != null) {
@@ -224,13 +229,13 @@ public class ExpressionCompiler {
 
     private void compileTwoStepComparison(OperatorMeta operatorMeta, int firstStepOp) {
         switch (operatorMeta) {
-            case LESSER -> compileTwoStepComparison(Opcodes.LCMP, Opcodes.IFLT);
-            case GREATER -> compileTwoStepComparison(Opcodes.LCMP, Opcodes.IFGT);
-            case LESSER_EQUAL -> compileTwoStepComparison(Opcodes.LCMP, Opcodes.IFLE);
-            case GREATER_EQUAL -> compileTwoStepComparison(Opcodes.LCMP, Opcodes.IFGE);
+            case LESSER -> compileTwoStepComparison(firstStepOp, Opcodes.IFLT);
+            case GREATER -> compileTwoStepComparison(firstStepOp, Opcodes.IFGT);
+            case LESSER_EQUAL -> compileTwoStepComparison(firstStepOp, Opcodes.IFLE);
+            case GREATER_EQUAL -> compileTwoStepComparison(firstStepOp, Opcodes.IFGE);
 
-            case EQUALS -> compileTwoStepComparison(Opcodes.LCMP, Opcodes.IFEQ);
-            case NOT_EQUALS -> compileTwoStepComparison(Opcodes.LCMP, Opcodes.IFNE);
+            case EQUALS -> compileTwoStepComparison(firstStepOp, Opcodes.IFEQ);
+            case NOT_EQUALS -> compileTwoStepComparison(firstStepOp, Opcodes.IFNE);
 
             default -> throw new CompilationException("unknown comparison operator: " + operatorMeta);
         }

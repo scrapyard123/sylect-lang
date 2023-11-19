@@ -34,7 +34,7 @@ loopStatement: 'while' expression '{' statement* '}';
 returnStatement: 'return' expression?;
 
 expression: term (operator term)*;
-term: unaryOp* (LITERAL ('L' | 'F')? | accessExpression | '(' expression ')');
+term: unaryOp* (LITERAL | accessExpression | '(' expression ')');
 
 accessExpression: accessTerm ('->' accessTerm)*;
 accessTerm: IDENTIFIER ('(' expression* ')')?;
@@ -51,9 +51,9 @@ operator:
     '^' |
     '|';
 
-type: 'void' | 'int' | 'long' | 'float' | 'double' | IDENTIFIER;
+type: ('void' | 'int' | 'long' | 'float' | 'double' | IDENTIFIER) '[]'?;
 
-LITERAL: [0-9.]+;
+LITERAL: [0-9.]+ ('L' | 'F')? | '"' .*? '"';
 IDENTIFIER: [a-zA-Z] ([a-zA-Z0-9.$])*;
 
 LINE_COMMENT: '//' ~[\r\n]* -> skip;

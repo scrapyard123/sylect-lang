@@ -5,8 +5,6 @@ import {
 
     java.util.List
     java.util.Comparator
-
-    forward.TestUtils
 }
 
 class forward.basic.Algorithms
@@ -38,7 +36,7 @@ fibIter(n:long):long {
 
 // Recursive Fibonacci sequence calculation
 fibRec1(a:long b:long n:long):long {
-    TestUtils->printlnLong(b)
+    java.lang.System->out->println(b)
     if (n == 0L) {
         return b
     } else {
