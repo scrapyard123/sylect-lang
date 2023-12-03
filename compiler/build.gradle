@@ -8,14 +8,16 @@ repositories {
 }
 
 dependencies {
-    antlr 'org.antlr:antlr4:4.10.1'
-    implementation 'ch.qos.logback:logback-classic:1.2.11'
-    implementation 'org.ow2.asm:asm:9.3'
+    antlr 'org.antlr:antlr4:4.13.1'
+    implementation 'ch.qos.logback:logback-classic:1.4.14'
+    implementation 'org.ow2.asm:asm:9.6'
 
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.8.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.1'
 }
 
 jar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
     manifest {
         attributes "Main-Class": "forward.bootstrap.BootstrapCompiler"
     }

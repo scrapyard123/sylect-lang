@@ -23,27 +23,41 @@ import java.util.Comparator;
 public class BootstrapCompiler {
     private static final Logger LOGGER = LoggerFactory.getLogger(BootstrapCompiler.class);
 
+    private static final String TARGET_ENV_VARIABLE = "JVM_VERSION";
+    private static final int DEFAULT_TARGET = 17;
+
+    private final int target;
     private final ScopeManager scopeManager;
 
     public BootstrapCompiler() {
-        scopeManager = new ScopeManager();
+        this(DEFAULT_TARGET);
+    }
+
+    public BootstrapCompiler(int target) {
+        this.target = target;
+        this.scopeManager = new ScopeManager();
     }
 
     public byte[] compile(ProgramContext tree) {
         var walker = new ParseTreeWalker();
 
-        var bytecodeTargetListener = new BytecodeTargetListener(scopeManager);
+        var bytecodeTargetListener = new BytecodeTargetListener(target, scopeManager);
         walker.walk(bytecodeTargetListener, tree);
         return bytecodeTargetListener.getBytecode();
     }
 
     public ProgramContext generateTree(String source) {
+        var errorListener = new ExceptionErrorListener();
+
         var lexer = new ForwardLexer(CharStreams.fromString(source));
         lexer.removeErrorListeners();
-        lexer.addErrorListener(new ExceptionErrorListener());
+        lexer.addErrorListener(errorListener);
 
         var tokenStream = new CommonTokenStream(lexer);
         var parser = new ForwardParser(tokenStream);
+
+        parser.removeErrorListeners();
+        parser.addErrorListener(errorListener);
 
         var tree = parser.program();
 
@@ -55,11 +69,14 @@ public class BootstrapCompiler {
 
     public static void main(String[] args) {
         if (args.length == 0) {
-            LOGGER.error("usage: forward.bootstrap.BootstrapCompiler [SOURCE]...");
+            LOGGER.error("usage: forward.bootstrap.BootstrapCompiler SOURCE...");
+            LOGGER.error("Use JVM_VERSION environment variable to control target JVM version (default is 17)");
             System.exit(1);
         }
 
-        var compiler = new BootstrapCompiler();
+        var target = Integer.parseInt(System.getProperty(TARGET_ENV_VARIABLE, String.valueOf(DEFAULT_TARGET)));
+
+        var compiler = new BootstrapCompiler(target);
         var sourceTrees = new ArrayList<Pair<Path, ProgramContext>>();
 
         for (String arg : args) {

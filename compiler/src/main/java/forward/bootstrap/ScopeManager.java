@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -101,6 +102,10 @@ public class ScopeManager {
 
     public LocalMeta getLocal(String name) {
         return locals.get(name);
+    }
+
+    public void forEachLocal(Consumer<LocalMeta> action) {
+        locals.values().forEach(action);
     }
 
     public FieldMeta getField(String name) {

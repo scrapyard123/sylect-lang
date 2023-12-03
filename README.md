@@ -23,13 +23,10 @@ Features are listed in order of their priority.
 - Full array support (create, access).
 - Add automatic conversions for types supported only in Java.
 - Decide on OOP approach (private/protected support, interfaces).
-- Write extensive feature tests.
 - Add break and continue.
+- Write extensive feature tests.
 - Templating support (using source text templates).
 - Lambda support (by compiling source at runtime).
-- Syntax correctness tracking.
 - Proper NaN treatment in comparison.
-- Proper stack depth calculation and local variable count.
-- Stackmap frame support.
 
 **IF YOU NOTICE THAT SOMETHING DOESN'T WORK, PLEASE CREATE AN ISSUE WITH DETAILS.**

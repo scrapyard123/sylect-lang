@@ -16,6 +16,7 @@ import forward.ForwardParser.ReturnStatementContext;
 import forward.ForwardParser.VariableDefinitionContext;
 import forward.bootstrap.metadata.ClassMeta;
 import forward.bootstrap.metadata.FieldMeta;
+import forward.bootstrap.metadata.LocalMeta;
 import forward.bootstrap.metadata.MethodMeta;
 import forward.bootstrap.metadata.TypeMeta;
 import forward.bootstrap.metadata.TypeMeta.Kind;
@@ -34,6 +35,8 @@ import java.util.Stack;
 public class BytecodeTargetListener extends ForwardBaseListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(BytecodeTargetListener.class);
 
+    private final int target;
+
     private final ScopeManager scopeManager;
     private final ClassWriter cw;
 
@@ -42,10 +45,14 @@ public class BytecodeTargetListener extends ForwardBaseListener {
 
     private MethodMeta methodMeta;
     private MethodVisitor mv;
+    private Label methodStart;
+    private Label methodEnd;
 
-    public BytecodeTargetListener(ScopeManager scopeManager) {
+    public BytecodeTargetListener(int target, ScopeManager scopeManager) {
+        this.target = target;
         this.scopeManager = Objects.requireNonNull(scopeManager, "scopeManager");
-        this.cw = new ClassWriter(0);
+
+        this.cw = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
         this.conditionalBlocks = new Stack<>();
         this.loopBlocks = new Stack<>();
     }
@@ -63,7 +70,7 @@ public class BytecodeTargetListener extends ForwardBaseListener {
         var interfaces = (String[]) null;
         LOGGER.debug("class definition: {}", classMeta);
 
-        cw.visit(Opcodes.V1_5,
+        cw.visit(getVersion(),
                 Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER,
                 ClassMeta.javaClassFromClassName(classMeta.name()),
                 null,
@@ -96,6 +103,12 @@ public class BytecodeTargetListener extends ForwardBaseListener {
                 null,
                 null);
 
+        methodStart = new Label();
+        methodEnd = new Label();
+        mv.visitLabel(methodStart);
+
+        scopeManager.forEachLocal(this::visitLocalVariable);
+
         // TODO: Proper constructor calls
         if ("<init>".equals(methodMeta.name())) {
             var classMeta = scopeManager.getClassMeta();
@@ -112,6 +125,8 @@ public class BytecodeTargetListener extends ForwardBaseListener {
             var localMeta = scopeManager.addLocal(
                     ctx.IDENTIFIER().get(i).getText(),
                     TypeMeta.fromContext(scopeManager, ctx.type(i)));
+            visitLocalVariable(localMeta);
+
             LOGGER.debug("variable definition: {}", localMeta);
         }
     }
@@ -251,8 +266,10 @@ public class BytecodeTargetListener extends ForwardBaseListener {
                 "<init>", "(Ljava/lang/String;)V", false);
         mv.visitInsn(Opcodes.ATHROW);
 
-        // TODO: Actual stack size/local count calculation
-        mv.visitMaxs(Short.MAX_VALUE, Byte.MAX_VALUE);
+        mv.visitLabel(methodEnd);
+
+        // Both parameters are calculated with ASM
+        mv.visitMaxs(-1, -1);
         mv.visitEnd();
     }
 
@@ -264,5 +281,34 @@ public class BytecodeTargetListener extends ForwardBaseListener {
 
     public byte[] getBytecode() {
         return cw.toByteArray();
+    }
+
+    private void visitLocalVariable(LocalMeta localMeta) {
+        mv.visitLocalVariable(
+                localMeta.name(),
+                localMeta.type().asDescriptor(), null,
+                methodStart, methodEnd,
+                localMeta.offset());
+    }
+
+    private int getVersion() {
+        return switch (target) {
+            case 5 -> Opcodes.V1_5;
+            case 6 -> Opcodes.V1_6;
+            case 7 -> Opcodes.V1_7;
+            case 8 -> Opcodes.V1_8;
+            case 9 -> Opcodes.V9;
+            case 10 -> Opcodes.V10;
+            case 11 -> Opcodes.V11;
+            case 12 -> Opcodes.V12;
+            case 13 -> Opcodes.V13;
+            case 14 -> Opcodes.V14;
+            case 15 -> Opcodes.V15;
+            case 16 -> Opcodes.V16;
+            case 17 -> Opcodes.V17;
+            case 18 -> Opcodes.V18;
+            case 19 -> Opcodes.V19;
+            default -> throw new CompilationException("unsupported target: " + target);
+        };
     }
 }
