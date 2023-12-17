@@ -2,10 +2,6 @@
 
 grammar Forward;
 
-@header {
-    package forward;
-}
-
 program: importSection? classDefinition (fieldDefinition | methodDefinition)*;
 
 importSection: 'import' '{' IDENTIFIER+ '}';
@@ -54,7 +50,7 @@ operator:
 type: ('void' | 'int' | 'long' | 'float' | 'double' | IDENTIFIER) '[]'?;
 
 LITERAL: [0-9.]+ ('L' | 'F')? | '"' .*? '"';
-IDENTIFIER: [a-zA-Z] ([a-zA-Z0-9.$])*;
+IDENTIFIER: [a-zA-Z] ([a-zA-Z0-9_.$])*;
 
 LINE_COMMENT: '//' ~[\r\n]* -> skip;
 WS: [ \r\n\t]+ -> channel(HIDDEN);

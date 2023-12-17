@@ -23,12 +23,18 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class ScopeManager {
+    private final ClassLoader classLoader;
+
     private final Map<String, LocalMeta> locals = new HashMap<>();
     private final Map<String, ClassMeta> classMetaMap = new HashMap<>();
 
     private Map<String, String> imports;
     private ClassMeta classMeta;
     private int currentOffset = 0;
+
+    public ScopeManager(ClassLoader classLoader) {
+        this.classLoader = classLoader;
+    }
 
     public void enterSource(ProgramContext ctx) {
         imports = Optional.ofNullable(ctx.importSection())
@@ -46,7 +52,7 @@ public class ScopeManager {
     public ClassMeta resolveClass(String identifier) {
         return classMetaMap.computeIfAbsent(identifier, id -> {
             try {
-                return ClassMeta.fromJavaClass(Class.forName(id));
+                return ClassMeta.fromJavaClass(classLoader.loadClass(id));
             } catch (ClassNotFoundException e) {
                 throw new CompilationException("unknown class: " + id);
             }

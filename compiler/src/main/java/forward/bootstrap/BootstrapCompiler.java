@@ -18,11 +18,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.Arrays;
+import java.util.List;
+import java.util.function.Consumer;
 
 public class BootstrapCompiler {
     private static final Logger LOGGER = LoggerFactory.getLogger(BootstrapCompiler.class);
 
+    private static final String SOURCE_FILE_EXTENSION = ".fw";
     private static final String TARGET_ENV_VARIABLE = "JVM_VERSION";
     private static final int DEFAULT_TARGET = 17;
 
@@ -30,12 +33,12 @@ public class BootstrapCompiler {
     private final ScopeManager scopeManager;
 
     public BootstrapCompiler() {
-        this(DEFAULT_TARGET);
+        this(BootstrapCompiler.class.getClassLoader(), DEFAULT_TARGET);
     }
 
-    public BootstrapCompiler(int target) {
+    public BootstrapCompiler(ClassLoader classLoader, int target) {
         this.target = target;
-        this.scopeManager = new ScopeManager();
+        this.scopeManager = new ScopeManager(classLoader);
     }
 
     public byte[] compile(ProgramContext tree) {
@@ -67,43 +70,69 @@ public class BootstrapCompiler {
         return tree;
     }
 
+    public static void compileSourceTrees(
+            ClassLoader classLoader, int target,
+            List<Path> sources, Path targetDir,
+            Consumer<String> logger) {
+        logger.accept("JVM Target: " + target);
+        var compiler = new BootstrapCompiler(classLoader, target);
+
+        logger.accept("Sources: " + sources);
+        var sourceTrees = new ArrayList<Pair<Path, ForwardParser.ProgramContext>>();
+        for (var source : sources) {
+            if (!Files.exists(source)) {
+                logger.accept("Broken path: " + source);
+                continue;
+            }
+
+            try (var fileStream = Files.walk(source)) {
+                var sourceFileList = fileStream
+                        .filter(path -> path.getFileName().toString().endsWith(SOURCE_FILE_EXTENSION))
+                        .toList();
+                for (var sourceFile : sourceFileList) {
+                    sourceTrees.add(new Pair<>(
+                            source.equals(sourceFile) ? sourceFile : source.relativize(sourceFile),
+                            compiler.generateTree(Files.readString(sourceFile))));
+                }
+            } catch (IOException e) {
+                throw new CompilationException("failed to parse sources", e);
+            }
+        }
+
+        for (var pair : sourceTrees) {
+            var sourceFile = pair.left();
+
+            var classFileName = sourceFile.getFileName().toString()
+                    .replaceAll("(?i)\\" + SOURCE_FILE_EXTENSION + "$", ".class");
+            var classPath = sourceFile.getParent() == null ? targetDir : targetDir.resolve(sourceFile.getParent());
+            var classFilePath = classPath.resolve(classFileName);
+
+            try {
+                Files.createDirectories(classPath);
+
+                logger.accept("Compiling: " + sourceFile + " -> " + classFilePath);
+                Files.write(classFilePath, compiler.compile(pair.right()));
+            } catch (IOException e) {
+                throw new CompilationException("could not write: " + classFilePath);
+            }
+        }
+    }
+
     public static void main(String[] args) {
         if (args.length == 0) {
-            LOGGER.error("usage: forward.bootstrap.BootstrapCompiler SOURCE...");
+            LOGGER.error("usage: forward.bootstrap.BootstrapCompiler DIR/FILE...");
             LOGGER.error("Use JVM_VERSION environment variable to control target JVM version (default is 17)");
             System.exit(1);
         }
 
         var target = Integer.parseInt(System.getProperty(TARGET_ENV_VARIABLE, String.valueOf(DEFAULT_TARGET)));
+        var pwd = System.getProperty("user.dir");
 
-        var compiler = new BootstrapCompiler(target);
-        var sourceTrees = new ArrayList<Pair<Path, ProgramContext>>();
-
-        for (String arg : args) {
-            var sourcePath = Paths.get(arg).toAbsolutePath();
-            LOGGER.info("parsing {}", sourcePath);
-
-            try {
-                sourceTrees.add(new Pair<>(sourcePath, compiler.generateTree(Files.readString(sourcePath))));
-            } catch (IOException e) {
-                throw new CompilationException("could not read " + sourcePath);
-            }
-        }
-
-        sourceTrees.forEach(pair -> {
-            var sourceName = pair.left().getFileName().toString();
-            var className = sourceName.replaceAll("(?i)\\.fw$", ".class");
-            if (className.equals(sourceName)) {
-                throw new CompilationException("class name equals source name: " + className);
-            }
-
-            var classPath = pair.left().getParent().resolve(className);
-            LOGGER.info("compiling {}", classPath);
-            try {
-                Files.write(classPath, compiler.compile(pair.right()));
-            } catch (IOException e) {
-                throw new CompilationException("could not write " + classPath);
-            }
-        });
+        compileSourceTrees(
+                BootstrapCompiler.class.getClassLoader(),
+                target,
+                Arrays.stream(args).map(Paths::get).map(Path::toAbsolutePath).toList(),
+                Paths.get(pwd).toAbsolutePath(),
+                LOGGER::info);
     }
 }
