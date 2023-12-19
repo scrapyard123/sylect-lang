@@ -13,7 +13,7 @@ constructor():void { return }
 
 // Iterative Fibonacci sequence calculation
 fibIter(n:long):long {
-    var a:long b:long a = 0L b = 1L
+    var a:long = 0L b:long = 1L
 
     if (n < 0L) {
         return -1L
@@ -23,7 +23,7 @@ fibIter(n:long):long {
     }
 
     var sum:long
-    var i:long i = 0L while i < n - 1L {
+    var i:long = 0L while i < n - 1L {
         sum = a + b
         a = b
         b = sum
@@ -57,8 +57,8 @@ fibRec(n:long):long {
 // Naive implementation of bubble sort
 bubbleSort(list:List comp:Comparator):void {
     var tmp:Object
-    var i:int i = 0 while i < list->size() {
-        var j:int j = 0 while j < list->size() - 1 {
+    var i:int = 0 while i < list->size() {
+        var j:int = 0 while j < list->size() - 1 {
             if comp->compare(list->get(j) list->get(j+1)) < 0 {
                 tmp = list->get(j)
                 list->set(j list->get(j+1))

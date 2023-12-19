@@ -3,13 +3,14 @@
 // This is an introduction to Forward syntax.
 // In general, Forward tries to keep things very simple and avoid extra punctuation.
 
-// You can import other classes.
+// You can import other classes/interfaces/annotations.
 import {
     java.io.PrintStream
+    java.lang.Deprecated
 }
 
-// Each file contains exactly one class definition.
-// You can inherit a single class by writing " : ClassName" after definition.
+// Each file contains exactly one class definition. Base class is added
+// with " : ClassName", annotations are written in square bracket blocks.
 class forward.basic.Syntax
 
 // Fields can be defined as following.
@@ -22,8 +23,8 @@ constructor():void {
     return
 }
 
-// Parameters are not separated by commas.
-testMethod(a:int):int {
+// Parameters are not separated by commas. Methods may be annotated as well.
+testMethod(a:int):int [Deprecated] {
     // You can call methods as following. If you haven't imported a class,
     // you can refer to it with a fully-qualified identifier.
     java.lang.System->out->println("Hello, World!")
@@ -35,7 +36,7 @@ testMethod(a:int):int {
 
     // Booleans are represented with integers 0 and 1.
     // Lack of semicolons means that you can chain statements.
-    var e:int e = (10 > 5) + (10L < 5L)
+    var e:int = (10 > 5) + (10L < 5L)
 
     if -4.5F > -8F {
         e = e + 1
@@ -45,7 +46,7 @@ testMethod(a:int):int {
 
     // Language supports only while loops, but it's possible to combine
     // statements to get syntax similar to for loop.
-    var f:int f = 0 while f < 8 {
+    var f:int = 0 while f < 8 {
         f = f + 1
     }
 

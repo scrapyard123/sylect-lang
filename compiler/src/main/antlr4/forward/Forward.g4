@@ -6,26 +6,33 @@ program: importSection? classDefinition (fieldDefinition | methodDefinition)*;
 
 importSection: 'import' '{' IDENTIFIER+ '}';
 
-classDefinition: 'class' IDENTIFIER (':' baseClass)?;
+classDefinition: 'class' IDENTIFIER (':' baseClass)? annotationDefinition?;
 baseClass: IDENTIFIER;
 
 fieldDefinition: 'static'? IDENTIFIER ':' type;
 
-methodDefinition: 'static'? IDENTIFIER '(' parameter* ')' ':' type '{' statement* '}';
+codeBlock: '{' statement* '}';
+
+methodDefinition:
+    'static'? IDENTIFIER '(' parameter* ')' ':' type
+    annotationDefinition?
+    codeBlock;
 parameter: IDENTIFIER ':' type;
+
+annotationDefinition: '[' type+ ']';
 
 statement:
     variableDefinition | assignmentStatement | expressionStatement |
     conditionalStatement | loopStatement |
     returnStatement;
 
-variableDefinition: 'var' (IDENTIFIER ':' type)+;
+variableDefinition: 'var' (IDENTIFIER ':' type ('=' expression)?)+;
 assignmentStatement: IDENTIFIER '=' expression;
 expressionStatement: expression;
 
-conditionalStatement: 'if' expression '{' statement* '}' elseBranch?;
-elseBranch: 'else' '{' statement* '}';
-loopStatement: 'while' expression '{' statement* '}';
+conditionalStatement: 'if' expression codeBlock elseBranch?;
+elseBranch: 'else' codeBlock;
+loopStatement: 'while' expression codeBlock;
 
 returnStatement: 'return' expression?;
 

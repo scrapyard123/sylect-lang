@@ -1,0 +1,15 @@
+import {
+    java.lang.String
+    java.lang.System
+}
+
+class forward.stdlib.HelloWorld
+
+constructor():void { return }
+
+static method(a:int):int { return a + 5 }
+
+static main(args:String[]):void {
+    System->out->println("Hello World")
+    return
+}

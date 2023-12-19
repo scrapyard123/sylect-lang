@@ -3,6 +3,7 @@
 package forward.bootstrap;
 
 import forward.ForwardBaseListener;
+import forward.ForwardParser;
 import forward.ForwardParser.AssignmentStatementContext;
 import forward.ForwardParser.ClassDefinitionContext;
 import forward.ForwardParser.ConditionalStatementContext;
@@ -21,6 +22,7 @@ import forward.bootstrap.metadata.MethodMeta;
 import forward.bootstrap.metadata.TypeMeta;
 import forward.bootstrap.metadata.TypeMeta.Kind;
 import forward.bootstrap.util.Pair;
+import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
@@ -30,6 +32,8 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 import java.util.Stack;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 // TODO: Proper support for stackmap frames
 public class BytecodeTargetListener extends ForwardBaseListener {
@@ -76,6 +80,7 @@ public class BytecodeTargetListener extends ForwardBaseListener {
                 null,
                 ClassMeta.javaClassFromClassName(classMeta.baseClassName()),
                 interfaces);
+        visitAnnotationDefinition(ctx.annotationDefinition(), desc -> cw.visitAnnotation(desc, true));
     }
 
     @Override
@@ -102,6 +107,7 @@ public class BytecodeTargetListener extends ForwardBaseListener {
                 methodMeta.asDescriptor(),
                 null,
                 null);
+        visitAnnotationDefinition(ctx.annotationDefinition(), desc -> mv.visitAnnotation(desc, true));
 
         methodStart = new Label();
         methodEnd = new Label();
@@ -126,8 +132,11 @@ public class BytecodeTargetListener extends ForwardBaseListener {
                     ctx.IDENTIFIER().get(i).getText(),
                     TypeMeta.fromContext(scopeManager, ctx.type(i)));
             visitLocalVariable(localMeta);
-
             LOGGER.debug("variable definition: {}", localMeta);
+
+            if (ctx.expression(i) != null) {
+                assignLocalVariable(localMeta, ctx.expression(i));
+            }
         }
     }
 
@@ -135,25 +144,14 @@ public class BytecodeTargetListener extends ForwardBaseListener {
     public void enterAssignmentStatement(AssignmentStatementContext ctx) {
         var name = ctx.IDENTIFIER().getText();
         var localMeta = scopeManager.getLocal(name);
+
         if (localMeta == null) {
             // TODO: Support field assignment
             throw new CompilationException("field assignment is not supported: " + name);
         }
         LOGGER.debug("assignment statement: {} to {}", ctx.expression().getText(), localMeta);
 
-        var expressionType = new ExpressionCompiler(scopeManager, mv).compile(ctx.expression());
-        if (!expressionType.equals(localMeta.type())) {
-            throw new CompilationException("cannot assign " + expressionType + " to " + localMeta.type());
-        }
-
-        switch (expressionType.kind()) {
-            case INTEGER -> mv.visitIntInsn(Opcodes.ISTORE, localMeta.offset());
-            case LONG -> mv.visitIntInsn(Opcodes.LSTORE, localMeta.offset());
-            case FLOAT -> mv.visitIntInsn(Opcodes.FSTORE, localMeta.offset());
-            case DOUBLE -> mv.visitIntInsn(Opcodes.DSTORE, localMeta.offset());
-            case CLASS -> mv.visitIntInsn(Opcodes.ASTORE, localMeta.offset());
-            default -> throw new CompilationException("unsupported assignment type: " + expressionType);
-        }
+        assignLocalVariable(localMeta, ctx.expression());
     }
 
     @Override
@@ -283,12 +281,42 @@ public class BytecodeTargetListener extends ForwardBaseListener {
         return cw.toByteArray();
     }
 
+    private void visitAnnotationDefinition(
+            ForwardParser.AnnotationDefinitionContext ctx,
+            Function<String, AnnotationVisitor> visitorGenerator) {
+        if (ctx == null) {
+            return;
+        }
+
+        for (var type : ctx.type()) {
+            var typeMeta = TypeMeta.fromContext(scopeManager, type);
+            var visitor = visitorGenerator.apply(typeMeta.asDescriptor());
+            visitor.visitEnd();
+        }
+    }
+
     private void visitLocalVariable(LocalMeta localMeta) {
         mv.visitLocalVariable(
                 localMeta.name(),
                 localMeta.type().asDescriptor(), null,
                 methodStart, methodEnd,
                 localMeta.offset());
+    }
+
+    private void assignLocalVariable(LocalMeta localMeta, ForwardParser.ExpressionContext ctx) {
+        var expressionType = new ExpressionCompiler(scopeManager, mv).compile(ctx);
+        if (!expressionType.equals(localMeta.type())) {
+            throw new CompilationException("cannot assign " + expressionType + " to " + localMeta.type());
+        }
+
+        switch (expressionType.kind()) {
+            case INTEGER -> mv.visitIntInsn(Opcodes.ISTORE, localMeta.offset());
+            case LONG -> mv.visitIntInsn(Opcodes.LSTORE, localMeta.offset());
+            case FLOAT -> mv.visitIntInsn(Opcodes.FSTORE, localMeta.offset());
+            case DOUBLE -> mv.visitIntInsn(Opcodes.DSTORE, localMeta.offset());
+            case CLASS -> mv.visitIntInsn(Opcodes.ASTORE, localMeta.offset());
+            default -> throw new CompilationException("unsupported assignment type: " + expressionType);
+        }
     }
 
     private int getVersion() {

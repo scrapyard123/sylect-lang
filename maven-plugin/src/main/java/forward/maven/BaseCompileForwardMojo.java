@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 package forward.maven;
 
 import forward.bootstrap.BootstrapCompiler;
@@ -5,10 +7,7 @@ import forward.bootstrap.CompilationException;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugins.annotations.LifecyclePhase;
-import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 
 import java.net.MalformedURLException;
@@ -20,12 +19,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 
-@Mojo(
-        name = "compile-forward",
-        defaultPhase = LifecyclePhase.COMPILE,
-        requiresDependencyCollection = ResolutionScope.RUNTIME_PLUS_SYSTEM,
-        requiresDependencyResolution = ResolutionScope.RUNTIME_PLUS_SYSTEM)
-public class ForwardMojo extends AbstractMojo {
+abstract public class BaseCompileForwardMojo extends AbstractMojo {
 
     @Parameter(required = true, readonly = true, property = "project")
     protected MavenProject project;
@@ -33,31 +27,37 @@ public class ForwardMojo extends AbstractMojo {
     @Parameter(required = true, readonly = true, property = "forward.target")
     protected int target;
 
-    @Override
-    public void execute() throws MojoExecutionException {
+    protected void compileForward(boolean tests) throws MojoExecutionException {
         var classPath = new ArrayList<String>();
         try {
-            classPath.addAll(project.getCompileClasspathElements());
-            classPath.addAll(project.getRuntimeClasspathElements());
-            // TODO: Add missing features to support running tests
-            // classPath.addAll(project.getTestClasspathElements());
+            if (tests) {
+                classPath.addAll(project.getTestClasspathElements());
+            } else {
+                classPath.addAll(project.getCompileClasspathElements());
+                classPath.addAll(project.getRuntimeClasspathElements());
+            }
         } catch (DependencyResolutionRequiredException e) {
             throw new RuntimeException(e);
         }
-
         var classLoader = createCompilerClassLoader(classPath);
 
-        var sourceRoots = new ArrayList<String>();
-        sourceRoots.addAll(project.getCompileSourceRoots());
-        // TODO: Add missing features to support running tests
-        // sourceRoots.addAll(project.getTestCompileSourceRoots());
+        var sourceRoots = tests ?
+                project.getTestCompileSourceRoots() :
+                project.getCompileSourceRoots();
+
+        var outputDir = tests ?
+                project.getBuild().getTestOutputDirectory() :
+                project.getBuild().getOutputDirectory();
 
         try {
             BootstrapCompiler.compileSourceTrees(
                     classLoader,
                     target,
-                    sourceRoots.stream().map(Paths::get).map(Path::toAbsolutePath).toList(),
-                    Paths.get(project.getBuild().getOutputDirectory()).toAbsolutePath(),
+                    sourceRoots.stream()
+                            .map(Paths::get)
+                            .map(Path::toAbsolutePath)
+                            .toList(),
+                    Paths.get(outputDir).toAbsolutePath(),
                     getLog()::info);
         } catch (CompilationException e) {
             throw new MojoExecutionException("failed to compile", e);
