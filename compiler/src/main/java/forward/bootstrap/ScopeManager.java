@@ -146,7 +146,7 @@ public class ScopeManager {
                 .orElse(null);
 
         if (currentClassMethodMeta == null) {
-            if (classMeta.isInterface()) {
+            if (classMeta.iface()) {
                 for (String interfaze : classMeta.interfaces()) {
                     return getMethod(resolveClass(interfaze), name, parameterTypes);
                 }

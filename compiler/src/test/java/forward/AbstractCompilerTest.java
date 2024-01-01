@@ -9,6 +9,7 @@ import org.junit.jupiter.api.BeforeEach;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 abstract public class AbstractCompilerTest {
     protected BootstrapCompiler compiler;
@@ -18,7 +19,7 @@ abstract public class AbstractCompilerTest {
         compiler = new BootstrapCompiler();
     }
 
-    protected void testCompiler(String name, String fileName, BiConsumer<Class<?>, Object> tester) {
+    protected void testCompiler(String name, String fileName, Consumer<Class<?>> tester) {
         try (var is = this.getClass().getClassLoader().getResourceAsStream(fileName)) {
             var source = new String(is.readAllBytes());
             var tree = compiler.generateTree(source);
@@ -29,11 +30,21 @@ abstract public class AbstractCompilerTest {
                 }
             };
             var clazz = localClassLoader.getCompiledClass();
-            var obj = clazz.getConstructor().newInstance();
-            tester.accept(clazz, obj);
+            tester.accept(clazz);
         } catch (Exception e) {
             Assertions.fail(e);
         }
+    }
+
+    protected void testCompiler(String name, String fileName, BiConsumer<Class<?>, Object> tester) {
+        testCompiler(name, fileName, clazz -> {
+            try {
+                var obj = clazz.getConstructor().newInstance();
+                tester.accept(clazz, obj);
+            } catch (Exception e) {
+                Assertions.fail(e);
+            }
+        });
     }
 
     protected Object callMethod(Object obj, String name, Object... args) {

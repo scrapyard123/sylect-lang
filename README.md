@@ -11,10 +11,9 @@ language construction experiments through use of compiler extensions (TODO).
 1. Install JDK 17+ and Maven 3.x.
 2. Run `mvn install` to build and install locally project components.
 3. Read `IDE.md` on how to set up your IDE for Forward.
-4. Read `compiler/src/test/resources/forward/Syntax.fw` to familiarize yourself with language syntax.
+4. Read `compiler/src/test/resources/forward/ClassSyntax.fw` to familiarize yourself with language syntax.
 5. Compile an example with `java -jar compiler/target/compiler-0.1.jar HelloWorld.fw` and run `java HelloWorld`.
-6. Read `compiler/src/test/resources/forward/Algorithms.fw` for more advanced examples.
-7. Take a look at `stdlib` which is an example of how you can set up your Forward projects.
+6. Take a look at `stdlib` which is an example of how you can set up your Forward projects.
 
 ### Maven Plugin
 You can apply Maven Plugin to write your projects in Forward.
@@ -62,20 +61,20 @@ Place your sources in `src/{main,test}/forward` and add the following to `pom.xm
 
 | Feature                                          | MVP                | Tested     |
 |--------------------------------------------------|--------------------|------------|
-| **Class Structure Definition**                   | :construction:     | :notebook: |
+| **Class Structure Definition**                   | :heavy_check_mark: | :notebook: |
 | **»** File Structure                             | :heavy_check_mark: | :notebook: |
 | **»** Class Definition                           | :heavy_check_mark: | :notebook: |
-| **»** Abstract Class Definition                  | :question:         | :notebook: |
-| **»** Interface Definition                       | :notebook:         | :notebook: |
+| **»** Abstract Class Definition                  | :x:                | :x:        |
+| **»** Interface Definition                       | :heavy_check_mark: | :notebook: |
 | **»** Annotation Definition                      | :x:                | :x:        |
 | **»** Enum Definition                            | :x:                | :x:        |
-| **»** Inheritance & Interface Implementation     | :construction:     | :notebook: |
+| **»** Inheritance & Interface Implementation     | :heavy_check_mark: | :notebook: |
 | **Access Modifiers**                             | :construction:     | :notebook: |
 | **»** Public/Private Fields/Methods              | :construction:     | :notebook: |
-| **»** Protected Fields/Methods                   | :question:         | :notebook: |
+| **»** Protected Fields/Methods                   | :question:         | :question: |
 | **»** Package-Private Fields/Methods             | :x:                | :x:        |
 | **»** Static Fields/Methods                      | :heavy_check_mark: | :notebook: |
-| **»** Final Fields                               | :question:         | :notebook: |
+| **»** Final Fields (+ for Interfaces)            | :question:         | :question: |
 | **»** Final Methods/Classes/etc                  | :x:                | :x:        |
 | **Annotations**                                  | :construction:     | :notebook: |
 | **»** Annotations for Classes/Methods/Parameters | :construction:     | :notebook: |
@@ -89,8 +88,9 @@ Place your sources in `src/{main,test}/forward` and add the following to `pom.xm
 | **»** Conditional                                | :heavy_check_mark: | :notebook: |
 | **»** Looping                                    | :heavy_check_mark: | :notebook: |
 | **»** Return                                     | :heavy_check_mark: | :notebook: |
+| **»** Break/Continue                             | :notebook:         | :notebook: |
 | **Variable Definition**                          | :construction:     | :notebook: |
-| **»** Scope Support                              | :question:         | :notebook: |
+| **»** Scope Support                              | :x:                | :x:        |
 | **Assignment Statement**                         | :construction:     | :notebook: |
 | **»** Local Variable Assignment                  | :heavy_check_mark: | :notebook: |
 | **»** Same-Object Field Assignment               | :notebook:         | :notebook: |
@@ -106,7 +106,7 @@ Place your sources in `src/{main,test}/forward` and add the following to `pom.xm
 | **»** null                                       | :notebook:         | :notebook: |
 | **»** Mathematical Operators                     | :heavy_check_mark: | :notebook: |
 | **»** Comparison Operators                       | :heavy_check_mark: | :notebook: |
-| **»** Proper NaN Treatment During Comparison     | :question:         | :notebook: |
+| **»** Proper NaN Treatment During Comparison     | :question:         | :question: |
 | **»** Logical Operators                          | :notebook:         | :notebook: |
 | **»** Array Operators                            | :notebook:         | :notebook: |
 | **»** Method Calls                               | :recycle:          | :notebook: |
@@ -121,7 +121,6 @@ Place your sources in `src/{main,test}/forward` and add the following to `pom.xm
 | **»** While Loop                                 | :heavy_check_mark: | :notebook: |
 | **»** For Loop                                   | :x:                | :x:        |
 | **»** Do-While Loop                              | :x:                | :x:        |
-| **»** Break/Continue Statements                  | :notebook:         | :notebook: |
 | **Return Statement**                             | :construction:     | :notebook: |
 | **»** Return Statements with Expressions         | :heavy_check_mark: | :notebook: |
 | **»** Add Automatically to Void Methods          | :notebook:         | :notebook: |
@@ -129,3 +128,4 @@ Place your sources in `src/{main,test}/forward` and add the following to `pom.xm
 | **»** Maven Plugin                               | :heavy_check_mark: | :notebook: |
 | **»** Testing Support in Maven Plugin            | :heavy_check_mark: | :notebook: |
 | **»** Compiler Extensions                        | :notebook:         | :notebook: |
+| **»** Algorithms & Data Structures               | :question:         | :question: |

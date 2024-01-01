@@ -2,9 +2,11 @@
 
 package forward.bootstrap.metadata;
 
+import forward.ForwardParser;
 import forward.ForwardParser.BaseClassContext;
 import forward.ForwardParser.ClassDefinitionContext;
 import forward.ForwardParser.ProgramContext;
+import forward.bootstrap.CompilationException;
 import forward.bootstrap.ScopeManager;
 import forward.bootstrap.metadata.TypeMeta.Kind;
 import org.antlr.v4.runtime.tree.TerminalNode;
@@ -15,7 +17,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public record ClassMeta(String name, boolean isInterface,
+public record ClassMeta(String name, boolean iface,
                         String baseClassName, Set<String> interfaces,
                         Set<FieldMeta> fields, Set<MethodMeta> methods) {
     public static String javaClassFromClassName(String className) {
@@ -29,6 +31,9 @@ public record ClassMeta(String name, boolean isInterface,
 
     public static ClassMeta fromForwardTree(ScopeManager scopeManager, ProgramContext ctx) {
         scopeManager.enterSource(ctx);
+
+        var iface = ctx.getText().startsWith("interface");
+
         var className = ctx.classDefinition().IDENTIFIER().getText();
         var baseClassName = Optional.of(ctx.classDefinition())
                 .map(ClassDefinitionContext::baseClass)
@@ -36,18 +41,34 @@ public record ClassMeta(String name, boolean isInterface,
                 .map(TerminalNode::getText)
                 .map(scopeManager::resolveImport)
                 .orElse("java.lang.Object");
+        var interfaces = Optional.of(ctx.classDefinition())
+                .map(ClassDefinitionContext::interfaceClass)
+                .map(interfaceList -> interfaceList.stream()
+                        .map(ForwardParser.InterfaceClassContext::IDENTIFIER)
+                        .map(TerminalNode::getText)
+                        .map(scopeManager::resolveImport)
+                        .collect(Collectors.toSet()))
+                .orElse(Set.of());
         var fields = Optional.ofNullable(ctx.fieldDefinition())
                 .map(fieldDefinitions -> fieldDefinitions.stream()
                         .map(fieldDefinition -> FieldMeta.fromContext(scopeManager, fieldDefinition))
                         .collect(Collectors.toSet()))
                 .orElse(Set.of());
+
+        if (iface && !fields.isEmpty()) {
+            throw new CompilationException("interface classes cannot contain fields");
+        }
+
         var methods = Optional.ofNullable(ctx.methodDefinition())
                 .map(methodDefinitions -> methodDefinitions.stream()
                         .map(methodDefinition -> MethodMeta.fromContext(scopeManager, methodDefinition))
                         .collect(Collectors.toSet()))
                 .orElse(Set.of());
-        // TODO: Add interface implementation support
-        return new ClassMeta(className, false, baseClassName, Set.of(), fields, methods);
+
+        return new ClassMeta(
+                className, iface,
+                baseClassName, interfaces,
+                fields, methods);
     }
 
     public static ClassMeta fromJavaClass(Class<?> clazz) {
@@ -68,6 +89,7 @@ public record ClassMeta(String name, boolean isInterface,
                 .map(method -> new MethodMeta(
                         method.getName(),
                         Modifier.isStatic(method.getModifiers()),
+                        Modifier.isAbstract(method.getModifiers()),
                         TypeMeta.fromJavaType(method.getReturnType()),
                         Arrays.stream(method.getParameters())
                                 .map(parameter -> new ParameterMeta(

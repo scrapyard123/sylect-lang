@@ -68,16 +68,16 @@ public class BytecodeTargetListener extends ForwardBaseListener {
     @Override
     public void enterClassDefinition(ClassDefinitionContext ctx) {
         var classMeta = scopeManager.enterClass(ctx);
-        // TODO: Actual interface list
-        var interfaces = (String[]) null;
         LOGGER.debug("class definition: {}", classMeta);
 
-        cw.visit(getVersion(),
-                Opcodes.ACC_PUBLIC + Opcodes.ACC_SUPER,
+        cw.visit(getVersion(), Opcodes.ACC_PUBLIC +
+                        (classMeta.iface() ? Opcodes.ACC_INTERFACE + Opcodes.ACC_ABSTRACT : Opcodes.ACC_SUPER),
                 ClassMeta.javaClassFromClassName(classMeta.name()),
                 null,
                 ClassMeta.javaClassFromClassName(classMeta.baseClassName()),
-                interfaces);
+                classMeta.interfaces().stream()
+                        .map(ClassMeta::javaClassFromClassName)
+                        .toArray(String[]::new));
         visitAnnotationDefinition(ctx.annotationDefinition(), desc -> cw.visitAnnotation(desc, true));
     }
 
@@ -99,8 +99,9 @@ public class BytecodeTargetListener extends ForwardBaseListener {
         methodMeta = scopeManager.enterMethod(ctx);
         LOGGER.debug("method definition start: {}", methodMeta);
 
-        mv = cw.visitMethod(
-                Opcodes.ACC_PUBLIC + (methodMeta.isStatic() ? Opcodes.ACC_STATIC : 0),
+        mv = cw.visitMethod(Opcodes.ACC_PUBLIC +
+                        (methodMeta.isStatic() ? Opcodes.ACC_STATIC : 0) +
+                        (methodMeta.isAbstract() ? Opcodes.ACC_ABSTRACT : 0),
                 methodMeta.name(),
                 methodMeta.asDescriptor(),
                 null,
@@ -252,15 +253,6 @@ public class BytecodeTargetListener extends ForwardBaseListener {
     @Override
     public void exitMethodDefinition(MethodDefinitionContext ctx) {
         LOGGER.debug("method definition end: {}", methodMeta);
-
-        // Guard to protect from the lack of return statement
-        // TODO: Devise some sort of analysis to determine code paths without return
-        mv.visitTypeInsn(Opcodes.NEW, "java/lang/RuntimeException");
-        mv.visitInsn(Opcodes.DUP);
-        mv.visitLdcInsn("No return statement");
-        mv.visitMethodInsn(Opcodes.INVOKESPECIAL, "java/lang/RuntimeException",
-                "<init>", "(Ljava/lang/String;)V", false);
-        mv.visitInsn(Opcodes.ATHROW);
 
         mv.visitLabel(methodEnd);
 

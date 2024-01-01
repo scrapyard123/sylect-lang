@@ -6,8 +6,12 @@ program: importSection? classDefinition (fieldDefinition | methodDefinition)*;
 
 importSection: 'import' '{' IDENTIFIER+ '}';
 
-classDefinition: 'class' IDENTIFIER (':' baseClass)? annotationDefinition?;
+classDefinition:
+    ('interface' | 'class') IDENTIFIER ('<:' baseClass)?
+    (':' (interfaceClass)+)?
+    annotationDefinition?;
 baseClass: IDENTIFIER;
+interfaceClass: IDENTIFIER;
 
 fieldDefinition: 'static'? IDENTIFIER ':' type;
 
@@ -16,7 +20,7 @@ codeBlock: '{' statement* '}';
 methodDefinition:
     'static'? IDENTIFIER '(' parameter* ')' ':' type
     annotationDefinition?
-    codeBlock;
+    codeBlock?;
 parameter: IDENTIFIER ':' type;
 
 annotationDefinition: '[' type+ ']';

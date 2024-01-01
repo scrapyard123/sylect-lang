@@ -142,14 +142,14 @@ public class AccessExpressionCompiler {
         var owner = ClassMeta.javaClassFromClassName(classMeta.name());
         if (method.isStatic()) {
             mv.visitMethodInsn(Opcodes.INVOKESTATIC, owner, identifier, method.asDescriptor(),
-                    classMeta.isInterface());
+                    classMeta.iface());
         } else {
-            if (classMeta.isInterface()) {
+            if (classMeta.iface()) {
                 mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, owner, identifier, method.asDescriptor(),
-                        classMeta.isInterface());
+                        classMeta.iface());
             } else {
                 mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, owner, identifier, method.asDescriptor(),
-                        classMeta.isInterface());
+                        classMeta.iface());
             }
         }
 
@@ -183,7 +183,7 @@ public class AccessExpressionCompiler {
             var classMeta = accessMeta.classMeta();
             var owner = ClassMeta.javaClassFromClassName(classMeta.name());
             mv.visitMethodInsn(Opcodes.INVOKESTATIC, owner, identifier, method.asDescriptor(),
-                    classMeta.isInterface());
+                    classMeta.iface());
             return new AccessMeta(null, method.returnType());
         } else if (accessMeta.isTypeMeta()) {
             if (accessMeta.typeMeta().kind() != Kind.CLASS) {
@@ -201,14 +201,14 @@ public class AccessExpressionCompiler {
             var owner = ClassMeta.javaClassFromClassName(classMeta.name());
             if (method.isStatic()) {
                 mv.visitMethodInsn(Opcodes.INVOKESTATIC, owner, identifier, method.asDescriptor(),
-                        classMeta.isInterface());
+                        classMeta.iface());
             } else {
-                if (classMeta.isInterface()) {
+                if (classMeta.iface()) {
                     mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, owner, identifier, method.asDescriptor(),
-                            classMeta.isInterface());
+                            classMeta.iface());
                 } else {
                     mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, owner, identifier, method.asDescriptor(),
-                            classMeta.isInterface());
+                            classMeta.iface());
                 }
             }
 
