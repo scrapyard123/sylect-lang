@@ -16,15 +16,18 @@ Currently only basic syntax highlighting is supported in IntelliJ IDEA.
 First tab:
 
 ```
+->
+:
+<:
 class
 else
 if
 import
+interface
 return
 static
 var
 while
-->
 ```
 
 Second tab:

@@ -1,0 +1,23 @@
+// SPDX-License-Identifier: MIT
+
+import {
+    java.lang.String
+    java.lang.System
+
+    com.sun.net.httpserver.HttpServer
+
+    forward.java.Bridge
+}
+
+class forward.http.WebApplication
+
+constructor():void { return }
+
+static main(args:String[]):void {
+    // TODO: Create HttpServer only once
+    var server:HttpServer = HttpServer->create(Bridge->createInetSocketAddress(8000) 0)
+    server->createContext("/static" Bridge->createHandler("forward.http.StaticHandler"))
+    server->createContext("/action" Bridge->createHandler("forward.http.DynamicHandler"))
+    server->start()
+    return
+}

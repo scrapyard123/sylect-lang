@@ -128,6 +128,7 @@ public class AccessExpressionCompiler {
 
     private AccessMeta compileLocalMethodCall(String identifier, List<ExpressionContext> arguments) {
         // We always add target object (ourselves) to the stack
+        // TODO: BUG: Calling a static method from a static method fails
         mv.visitVarInsn(Opcodes.ALOAD, 0);
 
         var parameterTypes = compileArguments(arguments);

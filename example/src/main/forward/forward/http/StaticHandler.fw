@@ -1,0 +1,38 @@
+// SPDX-License-Identifier: MIT
+
+import {
+    java.lang.String
+    java.lang.System
+
+    com.sun.net.httpserver.HttpExchange
+    com.sun.net.httpserver.HttpHandler
+
+    java.io.OutputStream
+
+    forward.java.Bridge
+    forward.java.ResourceData
+}
+
+class forward.http.StaticHandler : HttpHandler
+
+constructor():void { return }
+
+handle(exchange: HttpExchange): void {
+    var path:String = exchange->getRequestURI()->getPath()
+    System->out->println(exchange->getRequestMethod()->concat(": ")->concat(path))
+
+    var data:ResourceData = Bridge->readResource(path)
+    if data->isAbsent() {
+        exchange->sendResponseHeaders(404 0L)
+        exchange->getResponseBody()->close()
+        return
+    }
+
+    exchange->getResponseHeaders()->add("Content-Type" "text/html; charset=utf-8")
+    exchange->sendResponseHeaders(200 Bridge->asLong(data->getLength()))
+
+    var os:OutputStream = exchange->getResponseBody()
+    os->write(data->getData())
+    os->close()
+    return
+}

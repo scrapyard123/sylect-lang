@@ -12,7 +12,7 @@
     <modules>
         <module>compiler</module>
         <module>maven-plugin</module>
-        <module>stdlib</module>
+        <module>example</module>
     </modules>
 
     <properties>

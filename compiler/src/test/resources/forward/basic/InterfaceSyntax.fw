@@ -9,5 +9,3 @@ commonMethod():int { return 5 }
 
 // Fields are not allowed in interfaces.
 // field: int -> forward.bootstrap.CompilationException
-
-// Continue with Algorithms.fw

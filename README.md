@@ -13,7 +13,7 @@ language construction experiments through use of compiler extensions (TODO).
 3. Read `IDE.md` on how to set up your IDE for Forward.
 4. Read `compiler/src/test/resources/forward/ClassSyntax.fw` to familiarize yourself with language syntax.
 5. Compile an example with `java -jar compiler/target/compiler-0.1.jar HelloWorld.fw` and run `java HelloWorld`.
-6. Take a look at `stdlib` which is an example of how you can set up your Forward projects.
+6. Take a look at `example` for various examples.
 
 ### Maven Plugin
 You can apply Maven Plugin to write your projects in Forward.

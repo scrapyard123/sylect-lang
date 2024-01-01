@@ -7,7 +7,7 @@ import {
     java.util.Comparator
 }
 
-class forward.basic.Algorithms
+class forward.Algorithms
 
 constructor():void { return }
 

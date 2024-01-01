@@ -9,7 +9,7 @@
         <version>0.1</version>
     </parent>
 
-    <artifactId>stdlib</artifactId>
+    <artifactId>example</artifactId>
 
     <properties>
         <forward.target>17</forward.target>
