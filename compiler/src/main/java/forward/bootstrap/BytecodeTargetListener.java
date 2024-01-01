@@ -33,9 +33,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Objects;
 import java.util.Stack;
 import java.util.function.Function;
-import java.util.function.Supplier;
 
-// TODO: Proper support for stackmap frames
 public class BytecodeTargetListener extends ForwardBaseListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(BytecodeTargetListener.class);
 

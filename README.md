@@ -58,18 +58,74 @@ Place your sources in `src/{main,test}/forward` and add the following to `pom.xm
 </project>
 ```
 
-## TODO
+## Feature Implementation State
 
-Features are listed in order of their priority.
-
-- Add compiler extension support.
-- Rework access expressions (potentially merge with usual expressions).
-- Support usefully minimal set of operators.
-- Add break and continue.
-- Full annotation support.
-- Decide on OOP approach (private/protected support, interfaces).
-- Full array support (create, access).
-- Add automatic conversions for types supported only in Java.
-- Write extensive feature tests.
-- Add various algorithms/data structures to `stdlib`.
-- Proper NaN treatment in comparison.
+| Feature                                          | MVP                | Tested     |
+|--------------------------------------------------|--------------------|------------|
+| **Class Structure Definition**                   | :construction:     | :notebook: |
+| **»** File Structure                             | :heavy_check_mark: | :notebook: |
+| **»** Class Definition                           | :heavy_check_mark: | :notebook: |
+| **»** Abstract Class Definition                  | :question:         | :notebook: |
+| **»** Interface Definition                       | :notebook:         | :notebook: |
+| **»** Annotation Definition                      | :x:                | :x:        |
+| **»** Enum Definition                            | :x:                | :x:        |
+| **»** Inheritance & Interface Implementation     | :construction:     | :notebook: |
+| **Access Modifiers**                             | :construction:     | :notebook: |
+| **»** Public/Private Fields/Methods              | :construction:     | :notebook: |
+| **»** Protected Fields/Methods                   | :question:         | :notebook: |
+| **»** Package-Private Fields/Methods             | :x:                | :x:        |
+| **»** Static Fields/Methods                      | :heavy_check_mark: | :notebook: |
+| **»** Final Fields                               | :question:         | :notebook: |
+| **»** Final Methods/Classes/etc                  | :x:                | :x:        |
+| **Annotations**                                  | :construction:     | :notebook: |
+| **»** Annotations for Classes/Methods/Parameters | :construction:     | :notebook: |
+| **»** Annotations for Local Variables/etc        | :x:                | :x:        |
+| **»** Parameter-less Annotations                 | :heavy_check_mark: | :notebook: |
+| **»** Annotation Parameters                      | :notebook:         | :notebook: |
+| **Statement Types**                              | :construction:     | :notebook: |
+| **»** Variable Definition                        | :heavy_check_mark: | :notebook: |
+| **»** Assignment                                 | :heavy_check_mark: | :notebook: |
+| **»** Standalone Expression                      | :heavy_check_mark: | :notebook: |
+| **»** Conditional                                | :heavy_check_mark: | :notebook: |
+| **»** Looping                                    | :heavy_check_mark: | :notebook: |
+| **»** Return                                     | :heavy_check_mark: | :notebook: |
+| **Variable Definition**                          | :construction:     | :notebook: |
+| **»** Scope Support                              | :question:         | :notebook: |
+| **Assignment Statement**                         | :construction:     | :notebook: |
+| **»** Local Variable Assignment                  | :heavy_check_mark: | :notebook: |
+| **»** Same-Object Field Assignment               | :notebook:         | :notebook: |
+| **»** General Field Assignment                   | :notebook:         | :notebook: |
+| **»** Array Assignment                           | :notebook:         | :notebook: |
+| **Expressions**                                  | :construction:     | :notebook: |
+| **»** Numerical Literals                         | :heavy_check_mark: | :notebook: |
+| **»** String Literals                            | :heavy_check_mark: | :notebook: |
+| **»** Class Literals                             | :notebook:         | :notebook: |
+| **»** Field/Variable Access                      | :recycle:          | :notebook: |
+| **»** Object Instantiation                       | :notebook:         | :notebook: |
+| **»** Array Instantiation                        | :notebook:         | :notebook: |
+| **»** null                                       | :notebook:         | :notebook: |
+| **»** Mathematical Operators                     | :heavy_check_mark: | :notebook: |
+| **»** Comparison Operators                       | :heavy_check_mark: | :notebook: |
+| **»** Proper NaN Treatment During Comparison     | :question:         | :notebook: |
+| **»** Logical Operators                          | :notebook:         | :notebook: |
+| **»** Array Operators                            | :notebook:         | :notebook: |
+| **»** Method Calls                               | :recycle:          | :notebook: |
+| **»** Constructor Calls                          | :notebook:         | :notebook: |
+| **»** Type Conversion                            | :notebook:         | :notebook: |
+| **Method Calls**                                 | :recycle:          | :notebook: |
+| **»** Basic Method Calls                         | :heavy_check_mark: | :notebook: |
+| **»** Overloaded Method Calls                    | :heavy_check_mark: | :notebook: |
+| **»** Unsupported Type Conversion                | :heavy_check_mark: | :notebook: |
+| **Conditional Statement**                        | :heavy_check_mark: | :notebook: |
+| **Loop Statements**                              | :heavy_check_mark: | :notebook: |
+| **»** While Loop                                 | :heavy_check_mark: | :notebook: |
+| **»** For Loop                                   | :x:                | :x:        |
+| **»** Do-While Loop                              | :x:                | :x:        |
+| **»** Break/Continue Statements                  | :notebook:         | :notebook: |
+| **Return Statement**                             | :construction:     | :notebook: |
+| **»** Return Statements with Expressions         | :heavy_check_mark: | :notebook: |
+| **»** Add Automatically to Void Methods          | :notebook:         | :notebook: |
+| **Infrastructure**                               | :construction:     | :notebook: |
+| **»** Maven Plugin                               | :heavy_check_mark: | :notebook: |
+| **»** Testing Support in Maven Plugin            | :heavy_check_mark: | :notebook: |
+| **»** Compiler Extensions                        | :notebook:         | :notebook: |

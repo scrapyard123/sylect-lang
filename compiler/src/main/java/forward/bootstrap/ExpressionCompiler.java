@@ -15,7 +15,6 @@ import org.objectweb.asm.Opcodes;
 import java.util.Objects;
 import java.util.Stack;
 
-// TODO: Proper support for stackmap frames
 public class ExpressionCompiler {
     private final ScopeManager scopeManager;
     private final MethodVisitor mv;
