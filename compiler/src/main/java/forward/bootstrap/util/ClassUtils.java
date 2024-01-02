@@ -1,7 +1,11 @@
 package forward.bootstrap.util;
 
 import forward.bootstrap.CompilationException;
+import forward.bootstrap.metadata.TypeMeta;
+import org.antlr.v4.runtime.tree.TerminalNode;
 import org.objectweb.asm.Opcodes;
+
+import java.util.function.Consumer;
 
 public final class ClassUtils {
     private ClassUtils() {
@@ -26,5 +30,38 @@ public final class ClassUtils {
             case 19 -> Opcodes.V19;
             default -> throw new CompilationException("unsupported target: " + target);
         };
+    }
+
+    public static TypeMeta visitLiteral(TerminalNode literalNode, Consumer<Object> block) {
+        var kind = (TypeMeta.Kind) null;
+        var className = (String) null;
+
+        var literal = literalNode.getText();
+        if (literal.startsWith("\"") && literal.endsWith("\"")) {
+            kind = TypeMeta.Kind.CLASS;
+            className = "java.lang.String";
+            literal = literal.substring(1, literal.length() - 1);
+        } else if (literal.endsWith("F")) {
+            kind = TypeMeta.Kind.FLOAT;
+            literal = literal.substring(0, literal.length() - 1);
+        } else if (literal.endsWith("L")) {
+            kind = TypeMeta.Kind.LONG;
+            literal = literal.substring(0, literal.length() - 1);
+        } else if (literal.contains(".")) {
+            kind = TypeMeta.Kind.DOUBLE;
+        } else {
+            kind = TypeMeta.Kind.INTEGER;
+        }
+
+        switch (kind) {
+            case INTEGER -> block.accept(Integer.parseInt(literal));
+            case LONG -> block.accept(Long.parseLong(literal));
+            case FLOAT -> block.accept(Float.parseFloat(literal));
+            case DOUBLE -> block.accept(Double.parseDouble(literal));
+            case CLASS -> block.accept(literal);
+            default -> throw new CompilationException("unsupported literal type: " + kind);
+        }
+
+        return new TypeMeta(kind, false, className);
     }
 }

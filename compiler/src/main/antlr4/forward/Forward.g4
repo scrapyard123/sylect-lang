@@ -9,21 +9,23 @@ importSection: 'import' '{' IDENTIFIER+ '}';
 classDefinition:
     ('interface' | 'class') IDENTIFIER ('<:' baseClass)?
     (':' (interfaceClass)+)?
-    annotationDefinition?;
+    annotationBlock?;
 baseClass: IDENTIFIER;
 interfaceClass: IDENTIFIER;
 
-fieldDefinition: 'static'? IDENTIFIER ':' type;
+fieldDefinition: 'static'? IDENTIFIER ':' type annotationBlock?;
 
 codeBlock: '{' statement* '}';
 
 methodDefinition:
     'static'? IDENTIFIER '(' parameter* ')' ':' type
-    annotationDefinition?
+    annotationBlock?
     codeBlock?;
-parameter: IDENTIFIER ':' type;
+parameter: IDENTIFIER ':' type annotationBlock?;
 
-annotationDefinition: '[' type+ ']';
+annotationBlock: '[' annotationDefinition+ ']';
+annotationDefinition: type ('[' annotationParameter+ ']')?;
+annotationParameter: IDENTIFIER '=' LITERAL;
 
 statement:
     variableDefinitionStatement | assignmentStatement | expressionStatement |

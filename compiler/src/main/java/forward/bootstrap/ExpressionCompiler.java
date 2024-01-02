@@ -8,6 +8,7 @@ import forward.bootstrap.metadata.TypeMeta;
 import forward.bootstrap.metadata.TypeMeta.Kind;
 import forward.bootstrap.metadata.expression.OperatorMeta;
 import forward.bootstrap.metadata.expression.UnaryOperatorMeta;
+import forward.bootstrap.util.ClassUtils;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
@@ -63,36 +64,7 @@ public class ExpressionCompiler {
         var operandType = (TypeMeta) null;
 
         if (ctx.LITERAL() != null) {
-            var kind = (TypeMeta.Kind) null;
-            var className = (String) null;
-
-            var literal = ctx.LITERAL().getText();
-            if (literal.startsWith("\"") && literal.endsWith("\"")) {
-                kind = Kind.CLASS;
-                className = "java.lang.String";
-                literal = literal.substring(1, literal.length() - 1);
-            } else if (literal.endsWith("F")) {
-                kind = Kind.FLOAT;
-                literal = literal.substring(0, literal.length() - 1);
-            } else if (literal.endsWith("L")) {
-                kind = Kind.LONG;
-                literal = literal.substring(0, literal.length() - 1);
-            } else if (literal.contains(".")) {
-                kind = Kind.DOUBLE;
-            } else {
-                kind = Kind.INTEGER;
-            }
-
-            switch (kind) {
-                case INTEGER -> mv.visitLdcInsn(Integer.parseInt(literal));
-                case LONG -> mv.visitLdcInsn(Long.parseLong(literal));
-                case FLOAT -> mv.visitLdcInsn(Float.parseFloat(literal));
-                case DOUBLE -> mv.visitLdcInsn(Double.parseDouble(literal));
-                case CLASS -> mv.visitLdcInsn(literal);
-                default -> throw new CompilationException("unsupported literal type: " + kind);
-            }
-
-            operandType = new TypeMeta(kind, false, className);
+            operandType = ClassUtils.visitLiteral(ctx.LITERAL(), mv::visitLdcInsn);
         }
 
         if (ctx.accessExpression() != null) {

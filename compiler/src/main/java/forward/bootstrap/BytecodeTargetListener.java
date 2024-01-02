@@ -80,7 +80,7 @@ public class BytecodeTargetListener extends ForwardBaseListener {
                 classMeta.interfaces().stream()
                         .map(ClassMeta::javaClassFromClassName)
                         .toArray(String[]::new));
-        visitAnnotationDefinition(ctx.annotationDefinition(), desc -> cw.visitAnnotation(desc, true));
+        visitAnnotationBlock(ctx.annotationBlock(), desc -> cw.visitAnnotation(desc, true));
     }
 
     @Override
@@ -88,12 +88,13 @@ public class BytecodeTargetListener extends ForwardBaseListener {
         var fieldMeta = FieldMeta.fromContext(scopeManager, ctx);
         LOGGER.debug("field definition: {}", fieldMeta);
 
-        cw.visitField(
+        var fv = cw.visitField(
                 Opcodes.ACC_PUBLIC + (fieldMeta.isStatic() ? Opcodes.ACC_STATIC : 0),
                 fieldMeta.name(),
                 fieldMeta.asDescriptor(),
                 null,
                 null);
+        visitAnnotationBlock(ctx.annotationBlock(), desc -> fv.visitAnnotation(desc, true));
     }
 
     @Override
@@ -108,7 +109,14 @@ public class BytecodeTargetListener extends ForwardBaseListener {
                 methodMeta.asDescriptor(),
                 null,
                 null);
-        visitAnnotationDefinition(ctx.annotationDefinition(), desc -> mv.visitAnnotation(desc, true));
+
+        visitAnnotationBlock(ctx.annotationBlock(), desc -> mv.visitAnnotation(desc, true));
+        for (int i = 0; i < ctx.parameter().size(); i++) {
+            int index = i; // Lambda needs a final variable
+            visitAnnotationBlock(
+                    ctx.parameter(i).annotationBlock(),
+                    desc -> mv.visitParameterAnnotation(index, desc, true));
+        }
 
         methodStart = new Label();
         methodEnd = new Label();
@@ -296,16 +304,21 @@ public class BytecodeTargetListener extends ForwardBaseListener {
         return cw.toByteArray();
     }
 
-    private void visitAnnotationDefinition(
-            ForwardParser.AnnotationDefinitionContext ctx,
+    private void visitAnnotationBlock(
+            ForwardParser.AnnotationBlockContext ctx,
             Function<String, AnnotationVisitor> visitorGenerator) {
         if (ctx == null) {
             return;
         }
 
-        for (var type : ctx.type()) {
-            var typeMeta = TypeMeta.fromContext(scopeManager, type);
+        for (var def : ctx.annotationDefinition()) {
+            var typeMeta = TypeMeta.fromContext(scopeManager, def.type());
             var visitor = visitorGenerator.apply(typeMeta.asDescriptor());
+            for (var param : def.annotationParameter()) {
+                ClassUtils.visitLiteral(
+                        param.LITERAL(),
+                        value -> visitor.visit(param.IDENTIFIER().getText(), value));
+            }
             visitor.visitEnd();
         }
     }

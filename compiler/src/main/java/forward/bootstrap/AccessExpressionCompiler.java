@@ -11,6 +11,7 @@ import forward.bootstrap.metadata.TypeMeta.Kind;
 import forward.bootstrap.metadata.expression.AccessMeta;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
+import org.objectweb.asm.Type;
 
 import java.util.List;
 import java.util.Objects;
@@ -33,8 +34,8 @@ public class AccessExpressionCompiler {
         if (accessMeta.isTypeMeta()) {
             return accessMeta.typeMeta();
         } else {
-            // TODO: Support class literals
-            throw new CompilationException("class literals are not supported yet");
+            mv.visitLdcInsn(Type.getType(accessMeta.classMeta().asTypeMeta().asDescriptor()));
+            return new TypeMeta(Kind.CLASS, false, "java.lang.Class");
         }
     }
 
