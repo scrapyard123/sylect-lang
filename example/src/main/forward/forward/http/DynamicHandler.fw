@@ -15,7 +15,7 @@ import {
 
 class forward.http.DynamicHandler : HttpHandler
 
-constructor():void { return }
+constructor():void { }
 
 handle(exchange: HttpExchange): void {
     var path:String = exchange->getRequestURI()->getPath()
@@ -41,5 +41,4 @@ handle(exchange: HttpExchange): void {
     var os:OutputStream = exchange->getResponseBody()
     os->write(response->getBytes())
     os->close()
-    return
 }

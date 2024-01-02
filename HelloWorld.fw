@@ -5,9 +5,8 @@ import {
 
 class HelloWorld
 
-constructor():void { return }
+constructor():void { }
 
 static main(args:String[]):void {
     System->out->println("Hello, World!")
-    return
 }

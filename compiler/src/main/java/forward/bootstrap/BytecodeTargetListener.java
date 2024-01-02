@@ -287,6 +287,22 @@ public class BytecodeTargetListener extends ForwardBaseListener {
     public void exitMethodDefinition(MethodDefinitionContext ctx) {
         LOGGER.debug("method definition end: {}", methodMeta);
 
+        // Guard to protect from lack of return statement
+        if (!methodMeta.isAbstract()) {
+            if (methodMeta.returnType().kind() == Kind.VOID) {
+                mv.visitInsn(Opcodes.RETURN);
+            } else {
+                // TODO: Analyze code to determine whether there are code paths without return
+                mv.visitTypeInsn(Opcodes.NEW, "java/lang/RuntimeException");
+                mv.visitInsn(Opcodes.DUP);
+                mv.visitLdcInsn("No return statement");
+                mv.visitMethodInsn(
+                        Opcodes.INVOKESPECIAL, "java/lang/RuntimeException",
+                        "<init>", "(Ljava/lang/String;)V", false);
+                mv.visitInsn(Opcodes.ATHROW);
+            }
+        }
+
         mv.visitLabel(methodEnd);
 
         // Both parameters are calculated with ASM

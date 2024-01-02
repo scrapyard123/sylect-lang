@@ -15,7 +15,7 @@ import {
 
 class forward.http.StaticHandler : HttpHandler
 
-constructor():void { return }
+constructor():void { }
 
 handle(exchange: HttpExchange): void {
     var path:String = exchange->getRequestURI()->getPath()
@@ -34,5 +34,4 @@ handle(exchange: HttpExchange): void {
     var os:OutputStream = exchange->getResponseBody()
     os->write(data->getData())
     os->close()
-    return
 }

@@ -73,13 +73,14 @@ Place your sources in `src/{main,test}/forward` and add the following to `pom.xm
 | **»** Protected/Private Fields/Methods                  | :notebook:         | :notebook: |
 | **»** Package-Private Fields/Methods                    | :x:                | :x:        |
 | **»** Static Fields/Methods                             | :heavy_check_mark: | :notebook: |
-| **»** Final Fields (+ for Interfaces)                   | :notebook:         | :notebook: |
+| **»** Final Fields (+ for Interfaces)                   | :question:         | :question: |
 | **»** Final Methods/Classes/etc                         | :x:                | :x:        |
-| **Annotations**                                         | :construction:     | :notebook: |
+| **Annotations**                                         | :heavy_check_mark: | :notebook: |
 | **»** Annotations for Classes/Fields/Methods/Parameters | :heavy_check_mark: | :notebook: |
 | **»** Annotations for Local Variables/etc               | :x:                | :x:        |
 | **»** Parameter-less Annotations                        | :heavy_check_mark: | :notebook: |
 | **»** Annotation Parameters                             | :heavy_check_mark: | :notebook: |
+| **»** Array Parameters                                  | :question:         | :question: |
 | **Statement Types**                                     | :heavy_check_mark: | :notebook: |
 | **»** Variable Definition                               | :heavy_check_mark: | :notebook: |
 | **»** Assignment                                        | :heavy_check_mark: | :notebook: |
@@ -120,9 +121,10 @@ Place your sources in `src/{main,test}/forward` and add the following to `pom.xm
 | **»** While Loop                                        | :heavy_check_mark: | :notebook: |
 | **»** For Loop                                          | :heavy_check_mark: | :notebook: |
 | **»** Do-While Loop                                     | :x:                | :x:        |
-| **Return Statement**                                    | :construction:     | :notebook: |
+| **Return Statement**                                    | :heavy_check_mark: | :notebook: |
 | **»** Return Statements with Expressions                | :heavy_check_mark: | :notebook: |
-| **»** Add Automatically to Void Methods                 | :notebook:         | :notebook: |
+| **»** Add Automatically to Void Methods                 | :heavy_check_mark: | :notebook: |
+| **»** Guard from Code Paths Without Return              | :x:                | :x:        |
 | **Infrastructure**                                      | :construction:     | :notebook: |
 | **»** Maven Plugin                                      | :heavy_check_mark: | :notebook: |
 | **»** Testing Support in Maven Plugin                   | :heavy_check_mark: | :notebook: |

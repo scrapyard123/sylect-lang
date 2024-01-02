@@ -1,3 +1,3 @@
-class TestB : TestA
-constructor():void { return }
+class TestB <: TestA
+constructor():void { }
 b():int { return 2 }

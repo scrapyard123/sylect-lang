@@ -9,7 +9,7 @@ import {
 
 class forward.Algorithms
 
-constructor():void { return }
+constructor():void { }
 
 // Iterative Fibonacci sequence calculation
 fibIter(n:long):long {
@@ -56,11 +56,10 @@ fibRec(n:long):long {
 
 // Naive implementation of bubble sort
 bubbleSort(list:List comp:Comparator):void {
-    var tmp:Object
     var i:int = 0 while i < list->size() {
         var j:int = 0 while j < list->size() - 1 {
             if comp->compare(list->get(j) list->get(j+1)) < 0 {
-                tmp = list->get(j)
+                var tmp:Object = list->get(j)
                 list->set(j list->get(j+1))
                 list->set(j+1 tmp)
             }
@@ -70,5 +69,4 @@ bubbleSort(list:List comp:Comparator):void {
     } then {
         i = i + 1
     }
-    return
 }

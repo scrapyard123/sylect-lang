@@ -11,7 +11,7 @@ import {
 
 class forward.http.WebApplication
 
-constructor():void { return }
+constructor():void { }
 
 static main(args:String[]):void {
     // TODO: Create HttpServer only once
@@ -19,5 +19,4 @@ static main(args:String[]):void {
     server->createContext("/static" Bridge->createHandler("forward.http.StaticHandler"))
     server->createContext("/action" Bridge->createHandler("forward.http.DynamicHandler"))
     server->start()
-    return
 }
