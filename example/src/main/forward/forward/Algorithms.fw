@@ -64,8 +64,10 @@ bubbleSort(list:List comp:Comparator):void {
                 list->set(j list->get(j+1))
                 list->set(j+1 tmp)
             }
+        } then {
             j = j + 1
         }
+    } then {
         i = i + 1
     }
     return

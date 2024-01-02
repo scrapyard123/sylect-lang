@@ -26,17 +26,20 @@ parameter: IDENTIFIER ':' type;
 annotationDefinition: '[' type+ ']';
 
 statement:
-    variableDefinition | assignmentStatement | expressionStatement |
-    conditionalStatement | loopStatement |
+    variableDefinitionStatement | assignmentStatement | expressionStatement |
+    conditionalStatement | loopStatement | breakContinueStatement |
     returnStatement;
 
-variableDefinition: 'var' (IDENTIFIER ':' type ('=' expression)?)+;
+variableDefinitionStatement: 'var' (IDENTIFIER ':' type ('=' expression)?)+;
 assignmentStatement: IDENTIFIER '=' expression;
 expressionStatement: expression;
 
 conditionalStatement: 'if' expression codeBlock elseBranch?;
 elseBranch: 'else' codeBlock;
-loopStatement: 'while' expression codeBlock;
+
+loopStatement: 'while' expression codeBlock thenBlock?;
+thenBlock: 'then' codeBlock;
+breakContinueStatement: 'break' | 'continue';
 
 returnStatement: 'return' expression?;
 

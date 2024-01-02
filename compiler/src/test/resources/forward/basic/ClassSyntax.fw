@@ -38,13 +38,12 @@ testMethod(a:int):int [Deprecated] {
     // you can refer to it with a fully-qualified identifier.
     java.lang.System->out->println("Hello, World!")
 
-    // Typing is static and strong. Variable declaration always requires type.
+    // Variable scope is the whole method. Declaration always requires type.
     // Supported primitive types are int, long, float and double.
     var var1:int unused:double
     var1 = a - 1
 
     // Booleans are represented with integers 0 and 1.
-    // Lack of semicolons means that you can chain statements.
     var e:int = (10 > 5) + (10L < 5L)
 
     if -4.5F > -8F {
@@ -53,13 +52,20 @@ testMethod(a:int):int [Deprecated] {
         e = e - 1
     }
 
-    // Language supports only while loops, but it's possible to combine
-    // statements to get syntax similar to for loop.
-    var f:int = 0 while f < 8 {
-        f = f + 1
+    // Language only supports while loop with (optional) "then" block
+    // which is always executed at the end of the iteration.
+    var sum:int = 0
+    var i:int = 0 while i < 8 {
+        if (i == 2) {
+            continue
+        }
+        sum = sum + i
+    } then {
+        i = i + 1
     }
 
-    return var1 + 2 * (var1 - 1) + e + f
+    // Return statement supports expressions
+    return var1 + 2 * (var1 - 1) + e + sum
 }
 
 // Methods without code block are abstract.

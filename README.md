@@ -70,26 +70,25 @@ Place your sources in `src/{main,test}/forward` and add the following to `pom.xm
 | **»** Enum Definition                            | :x:                | :x:        |
 | **»** Inheritance & Interface Implementation     | :heavy_check_mark: | :notebook: |
 | **Access Modifiers**                             | :construction:     | :notebook: |
-| **»** Public/Private Fields/Methods              | :construction:     | :notebook: |
-| **»** Protected Fields/Methods                   | :question:         | :question: |
+| **»** Protected/Private Fields/Methods           | :notebook:         | :notebook: |
 | **»** Package-Private Fields/Methods             | :x:                | :x:        |
 | **»** Static Fields/Methods                      | :heavy_check_mark: | :notebook: |
-| **»** Final Fields (+ for Interfaces)            | :question:         | :question: |
+| **»** Final Fields (+ for Interfaces)            | :notebook:         | :notebook: |
 | **»** Final Methods/Classes/etc                  | :x:                | :x:        |
 | **Annotations**                                  | :construction:     | :notebook: |
 | **»** Annotations for Classes/Methods/Parameters | :construction:     | :notebook: |
 | **»** Annotations for Local Variables/etc        | :x:                | :x:        |
 | **»** Parameter-less Annotations                 | :heavy_check_mark: | :notebook: |
 | **»** Annotation Parameters                      | :notebook:         | :notebook: |
-| **Statement Types**                              | :construction:     | :notebook: |
+| **Statement Types**                              | :heavy_check_mark: | :notebook: |
 | **»** Variable Definition                        | :heavy_check_mark: | :notebook: |
 | **»** Assignment                                 | :heavy_check_mark: | :notebook: |
 | **»** Standalone Expression                      | :heavy_check_mark: | :notebook: |
 | **»** Conditional                                | :heavy_check_mark: | :notebook: |
 | **»** Looping                                    | :heavy_check_mark: | :notebook: |
 | **»** Return                                     | :heavy_check_mark: | :notebook: |
-| **»** Break/Continue                             | :notebook:         | :notebook: |
-| **Variable Definition**                          | :construction:     | :notebook: |
+| **»** Break/Continue                             | :heavy_check_mark: | :notebook: |
+| **Variable Definition**                          | :heavy_check_mark: | :notebook: |
 | **»** Scope Support                              | :x:                | :x:        |
 | **Assignment Statement**                         | :construction:     | :notebook: |
 | **»** Local Variable Assignment                  | :heavy_check_mark: | :notebook: |
@@ -114,12 +113,12 @@ Place your sources in `src/{main,test}/forward` and add the following to `pom.xm
 | **»** Type Conversion                            | :notebook:         | :notebook: |
 | **Method Calls**                                 | :recycle:          | :notebook: |
 | **»** Basic Method Calls                         | :heavy_check_mark: | :notebook: |
-| **»** Overloaded Method Calls                    | :heavy_check_mark: | :notebook: |
-| **»** Unsupported Type Conversion                | :heavy_check_mark: | :notebook: |
+| **»** Overloaded Method Calls                    | :construction:     | :notebook: |
+| **»** Unsupported Type Conversion                | :notebook:         | :notebook: |
 | **Conditional Statement**                        | :heavy_check_mark: | :notebook: |
 | **Loop Statements**                              | :heavy_check_mark: | :notebook: |
 | **»** While Loop                                 | :heavy_check_mark: | :notebook: |
-| **»** For Loop                                   | :x:                | :x:        |
+| **»** For Loop                                   | :heavy_check_mark: | :notebook: |
 | **»** Do-While Loop                              | :x:                | :x:        |
 | **Return Statement**                             | :construction:     | :notebook: |
 | **»** Return Statements with Expressions         | :heavy_check_mark: | :notebook: |

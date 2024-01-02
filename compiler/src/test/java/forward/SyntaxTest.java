@@ -13,7 +13,7 @@ public class SyntaxTest extends AbstractCompilerTest {
             Assertions.assertTrue(obj instanceof AutoCloseable);
 
             var result = callMethod(obj, "testMethod", 5);
-            Assertions.assertEquals(20, result);
+            Assertions.assertEquals(38, result);
 
             result = callMethod(obj, "staticTestMethod");
             Assertions.assertEquals(System.err, result);

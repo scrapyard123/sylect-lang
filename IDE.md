@@ -19,13 +19,16 @@ First tab:
 ->
 :
 <:
+break
 class
+continue
 else
 if
 import
 interface
 return
 static
+then
 var
 while
 ```

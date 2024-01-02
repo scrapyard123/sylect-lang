@@ -14,13 +14,14 @@ import forward.ForwardParser.LoopStatementContext;
 import forward.ForwardParser.MethodDefinitionContext;
 import forward.ForwardParser.ProgramContext;
 import forward.ForwardParser.ReturnStatementContext;
-import forward.ForwardParser.VariableDefinitionContext;
 import forward.bootstrap.metadata.ClassMeta;
 import forward.bootstrap.metadata.FieldMeta;
 import forward.bootstrap.metadata.LocalMeta;
 import forward.bootstrap.metadata.MethodMeta;
 import forward.bootstrap.metadata.TypeMeta;
 import forward.bootstrap.metadata.TypeMeta.Kind;
+import forward.bootstrap.util.ClassUtils;
+import forward.bootstrap.util.LoopContext;
 import forward.bootstrap.util.Pair;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -43,7 +44,7 @@ public class BytecodeTargetListener extends ForwardBaseListener {
     private final ClassWriter cw;
 
     private final Stack<Pair<Label, Label>> conditionalBlocks;
-    private final Stack<Pair<Label, Label>> loopBlocks;
+    private final Stack<LoopContext> loopBlocks;
 
     private MethodMeta methodMeta;
     private MethodVisitor mv;
@@ -70,7 +71,8 @@ public class BytecodeTargetListener extends ForwardBaseListener {
         var classMeta = scopeManager.enterClass(ctx);
         LOGGER.debug("class definition: {}", classMeta);
 
-        cw.visit(getVersion(), Opcodes.ACC_PUBLIC +
+        cw.visit(ClassUtils.getVersion(target),
+                Opcodes.ACC_PUBLIC +
                         (classMeta.iface() ? Opcodes.ACC_INTERFACE + Opcodes.ACC_ABSTRACT : Opcodes.ACC_SUPER),
                 ClassMeta.javaClassFromClassName(classMeta.name()),
                 null,
@@ -125,7 +127,7 @@ public class BytecodeTargetListener extends ForwardBaseListener {
     }
 
     @Override
-    public void enterVariableDefinition(VariableDefinitionContext ctx) {
+    public void enterVariableDefinitionStatement(ForwardParser.VariableDefinitionStatementContext ctx) {
         for (int i = 0; i < ctx.IDENTIFIER().size(); i++) {
             var localMeta = scopeManager.addLocal(
                     ctx.IDENTIFIER().get(i).getText(),
@@ -208,9 +210,10 @@ public class BytecodeTargetListener extends ForwardBaseListener {
 
         var loopStart = new Label();
         var otherCode = new Label();
+        var thenBlock = ctx.thenBlock() == null ? otherCode : new Label();
 
         mv.visitLabel(loopStart);
-        loopBlocks.push(new Pair<>(loopStart, otherCode));
+        loopBlocks.push(new LoopContext(loopStart, thenBlock, otherCode));
 
         var expressionType = new ExpressionCompiler(scopeManager, mv).compile(ctx.expression());
         if (expressionType.kind() != Kind.INTEGER) {
@@ -221,12 +224,34 @@ public class BytecodeTargetListener extends ForwardBaseListener {
     }
 
     @Override
+    public void enterBreakContinueStatement(ForwardParser.BreakContinueStatementContext ctx) {
+        LOGGER.debug("break/continue statement: {}", ctx.getText());
+
+        if (loopBlocks.empty()) {
+            throw new CompilationException("break/continue should be inside loop");
+        }
+        var currentLoop = loopBlocks.peek();
+
+        if ("break".equals(ctx.getText())) {
+            mv.visitJumpInsn(Opcodes.GOTO, currentLoop.otherCode());
+        } else {
+            mv.visitJumpInsn(Opcodes.GOTO, currentLoop.thenBlock());
+        }
+    }
+
+    @Override
+    public void enterThenBlock(ForwardParser.ThenBlockContext ctx) {
+        LOGGER.debug("loop statement then: {}", ctx.codeBlock().getText());
+        mv.visitLabel(loopBlocks.peek().thenBlock());
+    }
+
+    @Override
     public void exitLoopStatement(LoopStatementContext ctx) {
         LOGGER.debug("loop statement end: {}", ctx.expression().getText());
 
         var loopBlock = loopBlocks.pop();
-        mv.visitJumpInsn(Opcodes.GOTO, loopBlock.left());
-        mv.visitLabel(loopBlock.right());
+        mv.visitJumpInsn(Opcodes.GOTO, loopBlock.loopStart());
+        mv.visitLabel(loopBlock.otherCode());
     }
 
     @Override
@@ -307,26 +332,5 @@ public class BytecodeTargetListener extends ForwardBaseListener {
             case CLASS -> mv.visitIntInsn(Opcodes.ASTORE, localMeta.offset());
             default -> throw new CompilationException("unsupported assignment type: " + expressionType);
         }
-    }
-
-    private int getVersion() {
-        return switch (target) {
-            case 5 -> Opcodes.V1_5;
-            case 6 -> Opcodes.V1_6;
-            case 7 -> Opcodes.V1_7;
-            case 8 -> Opcodes.V1_8;
-            case 9 -> Opcodes.V9;
-            case 10 -> Opcodes.V10;
-            case 11 -> Opcodes.V11;
-            case 12 -> Opcodes.V12;
-            case 13 -> Opcodes.V13;
-            case 14 -> Opcodes.V14;
-            case 15 -> Opcodes.V15;
-            case 16 -> Opcodes.V16;
-            case 17 -> Opcodes.V17;
-            case 18 -> Opcodes.V18;
-            case 19 -> Opcodes.V19;
-            default -> throw new CompilationException("unsupported target: " + target);
-        };
     }
 }
