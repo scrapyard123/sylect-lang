@@ -1,0 +1,113 @@
+// SPDX-License-Identifier: MIT
+
+package forward.bootstrap;
+
+import forward.ForwardParser;
+import forward.bootstrap.metadata.MethodMeta;
+import forward.bootstrap.metadata.TypeMeta;
+import forward.bootstrap.util.ClassUtils;
+import org.objectweb.asm.AnnotationVisitor;
+
+import java.util.function.Function;
+
+public class AnnotationCompiler {
+
+    private final ScopeManager scopeManager;
+
+    public AnnotationCompiler(ScopeManager scopeManager) {
+        this.scopeManager = scopeManager;
+    }
+
+    public void visitAnnotationBlock(
+            ForwardParser.AnnotationBlockContext ctx,
+            Function<String, AnnotationVisitor> visitorGenerator) {
+        if (ctx == null) {
+            return;
+        }
+
+        for (var definition : ctx.annotationDefinition()) {
+            visitAnnotationDefinition(definition, visitorGenerator, null);
+        }
+    }
+
+    private void visitAnnotationDefinition(
+            ForwardParser.AnnotationDefinitionContext ctx,
+            Function<String, AnnotationVisitor> visitorGenerator,
+            TypeMeta expectedType) {
+
+        var classMeta = scopeManager.resolveClass(scopeManager.resolveImport(ctx.type().getText()));
+        var visitor = visitorGenerator.apply(classMeta.asTypeMeta().asDescriptor());
+
+        if (expectedType != null && !classMeta.asTypeMeta().equals(expectedType.arrayElementType())) {
+            throw new CompilationException("bad annotation type " + ctx.type() + ", expected: " + expectedType);
+        }
+
+        for (var param : ctx.annotationParameter()) {
+            var name = param.IDENTIFIER().getText();
+            var paramType = classMeta.methods().stream()
+                    .filter(method -> method.name().equals(name))
+                    .map(MethodMeta::returnType)
+                    .findFirst()
+                    .orElseThrow(() -> new CompilationException("unknown annotation field: " + name));
+
+            if (paramType.isArray()) {
+                visitArrayParameter(name, paramType, visitor, param);
+            } else {
+                visitParameter(name, paramType, visitor, param);
+            }
+        }
+
+        visitor.visitEnd();
+    }
+
+    private void visitParameter(
+            String name, TypeMeta paramType,
+            AnnotationVisitor visitor,
+            ForwardParser.AnnotationParameterContext param) {
+
+        if (param.LITERAL().size() > 1 || param.annotationDefinition().size() > 1) {
+            throw new CompilationException("single value is expected: " + name);
+        }
+
+        if (!param.LITERAL().isEmpty()) {
+            var literalType = ClassUtils.visitLiteral(param.LITERAL(0), value -> visitor.visit(name, value));
+            if (!literalType.equals(paramType)) {
+                throw new CompilationException("bad literal type " + literalType + ", expected: " + paramType);
+            }
+        }
+        if (!param.annotationDefinition().isEmpty()) {
+            visitAnnotationDefinition(
+                    param.annotationDefinition(0),
+                    desc -> visitor.visitAnnotation(name, desc),
+                    paramType);
+        }
+    }
+
+    private void visitArrayParameter(
+            String name, TypeMeta paramType,
+            AnnotationVisitor visitor,
+            ForwardParser.AnnotationParameterContext param) {
+
+        var arrayVisitor = visitor.visitArray(name);
+        var elementType = paramType.arrayElementType();
+
+        if (!param.LITERAL().isEmpty()) {
+            param.LITERAL().forEach(node -> {
+                var literalType = ClassUtils.visitLiteral(node, value -> arrayVisitor.visit(null, value));
+                if (!literalType.equals(elementType)) {
+                    throw new CompilationException("bad literal type " + literalType + ", expected: " + paramType);
+                }
+            });
+        }
+        if (!param.annotationDefinition().isEmpty()) {
+            param.annotationDefinition().forEach(definition -> {
+                visitAnnotationDefinition(
+                        definition,
+                        desc -> arrayVisitor.visitAnnotation(null, desc),
+                        elementType);
+            });
+        }
+
+        arrayVisitor.visitEnd();
+    }
+}

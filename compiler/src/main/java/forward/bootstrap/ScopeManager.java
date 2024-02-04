@@ -21,6 +21,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class ScopeManager {
     private final ClassLoader classLoader;
@@ -39,8 +40,9 @@ public class ScopeManager {
     public void enterSource(ProgramContext ctx) {
         imports = Optional.ofNullable(ctx.importSection())
                 .map(ImportSectionContext::IDENTIFIER)
-                .map(imports -> imports.stream()
-                        .map(TerminalNode::getText)
+                .map(imports -> Stream.concat(
+                                Stream.of(ctx.classDefinition().IDENTIFIER().getText()),
+                                imports.stream().map(TerminalNode::getText))
                         .collect(Collectors.toMap(ClassMeta::shortClassName, Function.identity())))
                 .orElse(Map.of());
     }

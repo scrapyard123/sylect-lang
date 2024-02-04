@@ -39,23 +39,26 @@ public class BytecodeTargetListener extends ForwardBaseListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(BytecodeTargetListener.class);
 
     private final int target;
-
     private final ScopeManager scopeManager;
-    private final ClassWriter cw;
 
-    private final Stack<Pair<Label, Label>> conditionalBlocks;
-    private final Stack<LoopContext> loopBlocks;
+    private final ClassWriter cw;
+    private final AnnotationCompiler annotationCompiler;
 
     private MethodMeta methodMeta;
     private MethodVisitor mv;
     private Label methodStart;
     private Label methodEnd;
 
+    private final Stack<Pair<Label, Label>> conditionalBlocks;
+    private final Stack<LoopContext> loopBlocks;
+
     public BytecodeTargetListener(int target, ScopeManager scopeManager) {
         this.target = target;
         this.scopeManager = Objects.requireNonNull(scopeManager, "scopeManager");
 
         this.cw = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
+        this.annotationCompiler = new AnnotationCompiler(scopeManager);
+
         this.conditionalBlocks = new Stack<>();
         this.loopBlocks = new Stack<>();
     }
@@ -80,7 +83,7 @@ public class BytecodeTargetListener extends ForwardBaseListener {
                 classMeta.interfaces().stream()
                         .map(ClassMeta::javaClassFromClassName)
                         .toArray(String[]::new));
-        visitAnnotationBlock(ctx.annotationBlock(), desc -> cw.visitAnnotation(desc, true));
+        annotationCompiler.visitAnnotationBlock(ctx.annotationBlock(), desc -> cw.visitAnnotation(desc, true));
     }
 
     @Override
@@ -89,12 +92,12 @@ public class BytecodeTargetListener extends ForwardBaseListener {
         LOGGER.debug("field definition: {}", fieldMeta);
 
         var fv = cw.visitField(
-                Opcodes.ACC_PUBLIC + (fieldMeta.isStatic() ? Opcodes.ACC_STATIC : 0),
+                Opcodes.ACC_PROTECTED + (fieldMeta.isStatic() ? Opcodes.ACC_STATIC : 0),
                 fieldMeta.name(),
                 fieldMeta.asDescriptor(),
                 null,
                 null);
-        visitAnnotationBlock(ctx.annotationBlock(), desc -> fv.visitAnnotation(desc, true));
+        annotationCompiler.visitAnnotationBlock(ctx.annotationBlock(), desc -> fv.visitAnnotation(desc, true));
     }
 
     @Override
@@ -110,10 +113,10 @@ public class BytecodeTargetListener extends ForwardBaseListener {
                 null,
                 null);
 
-        visitAnnotationBlock(ctx.annotationBlock(), desc -> mv.visitAnnotation(desc, true));
+        annotationCompiler.visitAnnotationBlock(ctx.annotationBlock(), desc -> mv.visitAnnotation(desc, true));
         for (int i = 0; i < ctx.parameter().size(); i++) {
             int index = i; // Lambda needs a final variable
-            visitAnnotationBlock(
+            annotationCompiler.visitAnnotationBlock(
                     ctx.parameter(i).annotationBlock(),
                     desc -> mv.visitParameterAnnotation(index, desc, true));
         }
@@ -152,15 +155,22 @@ public class BytecodeTargetListener extends ForwardBaseListener {
     @Override
     public void enterAssignmentStatement(AssignmentStatementContext ctx) {
         var name = ctx.IDENTIFIER().getText();
+
         var localMeta = scopeManager.getLocal(name);
-
-        if (localMeta == null) {
-            // TODO: Support field assignment
-            throw new CompilationException("field assignment is not supported: " + name);
+        if (localMeta != null) {
+            LOGGER.debug("assignment statement: {} to {}", ctx.expression().getText(), localMeta);
+            assignLocalVariable(localMeta, ctx.expression());
+            return;
         }
-        LOGGER.debug("assignment statement: {} to {}", ctx.expression().getText(), localMeta);
 
-        assignLocalVariable(localMeta, ctx.expression());
+        var fieldMeta = scopeManager.getField(name);
+        if (fieldMeta != null) {
+            LOGGER.debug("assignment statement: {} to {}", ctx.expression().getText(), fieldMeta);
+            assignField(fieldMeta, ctx.expression());
+            return;
+        }
+
+        throw new CompilationException("unknown local/field to assign: " + name);
     }
 
     @Override
@@ -218,10 +228,10 @@ public class BytecodeTargetListener extends ForwardBaseListener {
 
         var loopStart = new Label();
         var otherCode = new Label();
-        var thenBlock = ctx.thenBlock() == null ? otherCode : new Label();
+        var eachBlock = ctx.eachBlock() == null ? otherCode : new Label();
 
         mv.visitLabel(loopStart);
-        loopBlocks.push(new LoopContext(loopStart, thenBlock, otherCode));
+        loopBlocks.push(new LoopContext(loopStart, eachBlock, otherCode));
 
         var expressionType = new ExpressionCompiler(scopeManager, mv).compile(ctx.expression());
         if (expressionType.kind() != Kind.INTEGER) {
@@ -243,14 +253,14 @@ public class BytecodeTargetListener extends ForwardBaseListener {
         if ("break".equals(ctx.getText())) {
             mv.visitJumpInsn(Opcodes.GOTO, currentLoop.otherCode());
         } else {
-            mv.visitJumpInsn(Opcodes.GOTO, currentLoop.thenBlock());
+            mv.visitJumpInsn(Opcodes.GOTO, currentLoop.eachBlock());
         }
     }
 
     @Override
-    public void enterThenBlock(ForwardParser.ThenBlockContext ctx) {
-        LOGGER.debug("loop statement then: {}", ctx.codeBlock().getText());
-        mv.visitLabel(loopBlocks.peek().thenBlock());
+    public void enterEachBlock(ForwardParser.EachBlockContext ctx) {
+        LOGGER.debug("loop statement each: {}", ctx.codeBlock().getText());
+        mv.visitLabel(loopBlocks.peek().eachBlock());
     }
 
     @Override
@@ -320,25 +330,6 @@ public class BytecodeTargetListener extends ForwardBaseListener {
         return cw.toByteArray();
     }
 
-    private void visitAnnotationBlock(
-            ForwardParser.AnnotationBlockContext ctx,
-            Function<String, AnnotationVisitor> visitorGenerator) {
-        if (ctx == null) {
-            return;
-        }
-
-        for (var def : ctx.annotationDefinition()) {
-            var typeMeta = TypeMeta.fromContext(scopeManager, def.type());
-            var visitor = visitorGenerator.apply(typeMeta.asDescriptor());
-            for (var param : def.annotationParameter()) {
-                ClassUtils.visitLiteral(
-                        param.LITERAL(),
-                        value -> visitor.visit(param.IDENTIFIER().getText(), value));
-            }
-            visitor.visitEnd();
-        }
-    }
-
     private void visitLocalVariable(LocalMeta localMeta) {
         mv.visitLocalVariable(
                 localMeta.name(),
@@ -361,5 +352,25 @@ public class BytecodeTargetListener extends ForwardBaseListener {
             case CLASS -> mv.visitIntInsn(Opcodes.ASTORE, localMeta.offset());
             default -> throw new CompilationException("unsupported assignment type: " + expressionType);
         }
+    }
+
+    private void assignField(FieldMeta fieldMeta, ForwardParser.ExpressionContext ctx) {
+        if (methodMeta.isStatic() && !fieldMeta.isStatic()) {
+            throw new CompilationException("could not assign non-static field in static method: " + fieldMeta.name());
+        }
+
+        if (!fieldMeta.isStatic()) {
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+        }
+
+        var expressionType = new ExpressionCompiler(scopeManager, mv).compile(ctx);
+        if (!expressionType.equals(fieldMeta.type())) {
+            throw new CompilationException("cannot assign " + expressionType + " to " + fieldMeta.type());
+        }
+
+        var owner = ClassMeta.javaClassFromClassName(scopeManager.getClassMeta().name());
+        mv.visitFieldInsn(
+                fieldMeta.isStatic() ? Opcodes.PUTSTATIC : Opcodes.PUTFIELD,
+                owner, fieldMeta.name(), fieldMeta.asDescriptor());
     }
 }

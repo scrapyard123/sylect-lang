@@ -6,6 +6,7 @@ import forward.ForwardParser.TypeContext;
 import forward.bootstrap.ScopeManager;
 
 public record TypeMeta(Kind kind, boolean isArray, String className) {
+
     public static TypeMeta fromContext(ScopeManager scopeManager, TypeContext ctx) {
         var typeString = ctx.getText();
 
@@ -65,6 +66,10 @@ public record TypeMeta(Kind kind, boolean isArray, String className) {
         }
 
         return new TypeMeta(Kind.CLASS, isArray, clazz.getCanonicalName());
+    }
+
+    public TypeMeta arrayElementType() {
+        return new TypeMeta(kind, false, className);
     }
 
     public int getLocalSize() {

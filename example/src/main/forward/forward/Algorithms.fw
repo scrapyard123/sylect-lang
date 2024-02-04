@@ -27,7 +27,7 @@ fibIter(n:long):long {
         sum = a + b
         a = b
         b = sum
-
+    } each {
         i = i + 1L
     }
 
@@ -63,10 +63,10 @@ bubbleSort(list:List comp:Comparator):void {
                 list->set(j list->get(j+1))
                 list->set(j+1 tmp)
             }
-        } then {
+        } each {
             j = j + 1
         }
-    } then {
+    } each {
         i = i + 1
     }
 }

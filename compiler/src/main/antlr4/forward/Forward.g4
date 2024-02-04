@@ -25,7 +25,7 @@ parameter: IDENTIFIER ':' type annotationBlock?;
 
 annotationBlock: '[' annotationDefinition+ ']';
 annotationDefinition: type ('[' annotationParameter+ ']')?;
-annotationParameter: IDENTIFIER '=' LITERAL;
+annotationParameter: IDENTIFIER '{' (LITERAL+ | annotationDefinition+) '}';
 
 statement:
     variableDefinitionStatement | assignmentStatement | expressionStatement |
@@ -39,8 +39,8 @@ expressionStatement: expression;
 conditionalStatement: 'if' expression codeBlock elseBranch?;
 elseBranch: 'else' codeBlock;
 
-loopStatement: 'while' expression codeBlock thenBlock?;
-thenBlock: 'then' codeBlock;
+loopStatement: 'while' expression codeBlock eachBlock?;
+eachBlock: 'each' codeBlock;
 breakContinueStatement: 'break' | 'continue';
 
 returnStatement: 'return' expression?;

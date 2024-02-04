@@ -28,7 +28,7 @@ import
 interface
 return
 static
-then
+each
 var
 while
 ```

@@ -4,7 +4,7 @@
 
 Forward is a simple JVM language which strives to be as close to JVM functionality as possible
 without compromising ease of use. The primary goal of this language is to serve as a base for
-language construction experiments through use of compiler extensions (TODO).
+language design experiments.
 
 ## Getting Started
 
@@ -80,7 +80,7 @@ Place your sources in `src/{main,test}/forward` and add the following to `pom.xm
 | **»** Annotations for Local Variables/etc               | :x:                | :x:        |
 | **»** Parameter-less Annotations                        | :heavy_check_mark: | :notebook: |
 | **»** Annotation Parameters                             | :heavy_check_mark: | :notebook: |
-| **»** Array Parameters                                  | :question:         | :question: |
+| **»** Array Parameters                                  | :heavy_check_mark: | :question: |
 | **Statement Types**                                     | :heavy_check_mark: | :notebook: |
 | **»** Variable Definition                               | :heavy_check_mark: | :notebook: |
 | **»** Assignment                                        | :heavy_check_mark: | :notebook: |
@@ -93,9 +93,9 @@ Place your sources in `src/{main,test}/forward` and add the following to `pom.xm
 | **»** Scope Support                                     | :x:                | :x:        |
 | **Assignment Statement**                                | :construction:     | :notebook: |
 | **»** Local Variable Assignment                         | :heavy_check_mark: | :notebook: |
-| **»** Same-Object Field Assignment                      | :notebook:         | :notebook: |
-| **»** General Field Assignment                          | :notebook:         | :notebook: |
-| **»** Array Assignment                                  | :notebook:         | :notebook: |
+| **»** Same-Object Field Assignment                      | :heavy_check_mark: | :notebook: |
+| **»** General Field Assignment                          | :x:                | :x:        |
+| **»** Array Assignment                                  | :question:         | :notebook: |
 | **Expressions**                                         | :construction:     | :notebook: |
 | **»** Numerical Literals                                | :heavy_check_mark: | :notebook: |
 | **»** String Literals                                   | :heavy_check_mark: | :notebook: |
@@ -125,8 +125,7 @@ Place your sources in `src/{main,test}/forward` and add the following to `pom.xm
 | **»** Return Statements with Expressions                | :heavy_check_mark: | :notebook: |
 | **»** Add Automatically to Void Methods                 | :heavy_check_mark: | :notebook: |
 | **»** Guard from Code Paths Without Return              | :x:                | :x:        |
-| **Infrastructure**                                      | :construction:     | :notebook: |
+| **Infrastructure**                                      | :question:         | :notebook: |
 | **»** Maven Plugin                                      | :heavy_check_mark: | :notebook: |
 | **»** Testing Support in Maven Plugin                   | :heavy_check_mark: | :notebook: |
-| **»** Compiler Extensions                               | :notebook:         | :notebook: |
 | **»** Algorithms & Data Structures                      | :question:         | :question: |

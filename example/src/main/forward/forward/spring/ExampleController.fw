@@ -1,0 +1,37 @@
+// SPDX-License-Identifier: MIT
+
+import {
+    java.lang.String
+
+    forward.java.Bridge
+
+    org.springframework.stereotype.Controller
+    org.springframework.ui.Model
+    org.springframework.web.bind.annotation.GetMapping
+    org.springframework.web.bind.annotation.PostMapping
+    org.springframework.web.bind.annotation.RequestParam
+}
+
+class forward.spring.ExampleController [
+    Controller
+]
+
+constructor():void { }
+
+index():String [
+    GetMapping[value{"/"}]
+] {
+    return "index"
+}
+
+greeting(
+    field: String [
+        RequestParam[name{"field"}]
+    ]
+    model: Model
+):String [
+    PostMapping[value{"/action"}]
+] {
+    model->addAttribute("name" Bridge->asObject(field))
+    return "greeting"
+}
