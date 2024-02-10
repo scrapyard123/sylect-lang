@@ -14,6 +14,7 @@ language design experiments.
 4. Read `compiler/src/test/resources/forward/ClassSyntax.fw` to familiarize yourself with language syntax.
 5. Compile an example with `java -jar compiler/target/compiler-0.1.jar HelloWorld.fw` and run `java HelloWorld`.
 6. Take a look at `example` for various examples.
+7. Take a look at https://github.com/scrapyard123/eclinic for Spring Boot application example with Spring Data JPA.
 
 ### Maven Plugin
 You can apply Maven Plugin to write your projects in Forward.
@@ -33,7 +34,7 @@ Place your sources in `src/{main,test}/forward` and add the following to `pom.xm
         <plugins>
             <plugin>
                 <groupId>forward</groupId>
-                <artifactId>maven-plugin</artifactId>
+                <artifactId>forward-maven-plugin</artifactId>
                 <version>0.1</version>
                 <executions>
                     <execution>
@@ -73,7 +74,7 @@ Place your sources in `src/{main,test}/forward` and add the following to `pom.xm
 | **»** Protected/Private Fields/Methods                  | :notebook:         | :notebook: |
 | **»** Package-Private Fields/Methods                    | :x:                | :x:        |
 | **»** Static Fields/Methods                             | :heavy_check_mark: | :notebook: |
-| **»** Final Fields (+ for Interfaces)                   | :question:         | :question: |
+| **»** Final Fields (+ for Interfaces)                   | :x:                | :x:        |
 | **»** Final Methods/Classes/etc                         | :x:                | :x:        |
 | **Annotations**                                         | :heavy_check_mark: | :notebook: |
 | **»** Annotations for Classes/Fields/Methods/Parameters | :heavy_check_mark: | :notebook: |
@@ -81,7 +82,7 @@ Place your sources in `src/{main,test}/forward` and add the following to `pom.xm
 | **»** Parameter-less Annotations                        | :heavy_check_mark: | :notebook: |
 | **»** Annotation Parameters                             | :heavy_check_mark: | :notebook: |
 | **»** Array Parameters                                  | :heavy_check_mark: | :question: |
-| **Statement Types**                                     | :heavy_check_mark: | :notebook: |
+| **Statement Types**                                     | :construction:     | :notebook: |
 | **»** Variable Definition                               | :heavy_check_mark: | :notebook: |
 | **»** Assignment                                        | :heavy_check_mark: | :notebook: |
 | **»** Standalone Expression                             | :heavy_check_mark: | :notebook: |
@@ -89,33 +90,35 @@ Place your sources in `src/{main,test}/forward` and add the following to `pom.xm
 | **»** Looping                                           | :heavy_check_mark: | :notebook: |
 | **»** Return                                            | :heavy_check_mark: | :notebook: |
 | **»** Break/Continue                                    | :heavy_check_mark: | :notebook: |
+| **»** Try/Catch/Throw                                   | :question:         | :notebook: |
+| **»** Switch/Case or When                               | :x:                | :x:        |
 | **Variable Definition**                                 | :heavy_check_mark: | :notebook: |
 | **»** Scope Support                                     | :x:                | :x:        |
-| **Assignment Statement**                                | :construction:     | :notebook: |
+| **Assignment Statement**                                | :heavy_check_mark: | :notebook: |
 | **»** Local Variable Assignment                         | :heavy_check_mark: | :notebook: |
 | **»** Same-Object Field Assignment                      | :heavy_check_mark: | :notebook: |
 | **»** General Field Assignment                          | :x:                | :x:        |
-| **»** Array Assignment                                  | :question:         | :notebook: |
+| **»** Array Assignment                                  | :x:                | :x:        |
 | **Expressions**                                         | :construction:     | :notebook: |
 | **»** Numerical Literals                                | :heavy_check_mark: | :notebook: |
 | **»** String Literals                                   | :heavy_check_mark: | :notebook: |
 | **»** Class Literals                                    | :recycle:          | :notebook: |
 | **»** Field/Variable Access                             | :recycle:          | :notebook: |
 | **»** Object Instantiation                              | :notebook:         | :notebook: |
-| **»** Array Instantiation                               | :notebook:         | :notebook: |
-| **»** null                                              | :notebook:         | :notebook: |
+| **»** Array Instantiation                               | :x:                | :x:        |
+| **»** null                                              | :x:                | :x:        |
 | **»** Mathematical Operators                            | :heavy_check_mark: | :notebook: |
 | **»** Comparison Operators                              | :heavy_check_mark: | :notebook: |
 | **»** Proper NaN Treatment During Comparison            | :question:         | :question: |
 | **»** Logical Operators                                 | :notebook:         | :notebook: |
-| **»** Array Operators                                   | :notebook:         | :notebook: |
+| **»** Array Operators                                   | :x:                | :x:        |
 | **»** Method Calls                                      | :recycle:          | :notebook: |
 | **»** Constructor Calls                                 | :notebook:         | :notebook: |
-| **»** Type Conversion                                   | :notebook:         | :notebook: |
-| **Method Calls**                                        | :recycle:          | :notebook: |
+| **»** Type Conversion                                   | :heavy_check_mark: | :notebook: |
+| **Method Calls**                                        | :heavy_check_mark: | :notebook: |
 | **»** Basic Method Calls                                | :heavy_check_mark: | :notebook: |
-| **»** Overloaded Method Calls                           | :construction:     | :notebook: |
-| **»** Unsupported Type Conversion                       | :notebook:         | :notebook: |
+| **»** Overloaded Method Calls                           | :heavy_check_mark: | :notebook: |
+| **»** Unsupported Type Conversion                       | :x:                | :x:        |
 | **Conditional Statement**                               | :heavy_check_mark: | :notebook: |
 | **Loop Statements**                                     | :heavy_check_mark: | :notebook: |
 | **»** While Loop                                        | :heavy_check_mark: | :notebook: |
@@ -125,7 +128,7 @@ Place your sources in `src/{main,test}/forward` and add the following to `pom.xm
 | **»** Return Statements with Expressions                | :heavy_check_mark: | :notebook: |
 | **»** Add Automatically to Void Methods                 | :heavy_check_mark: | :notebook: |
 | **»** Guard from Code Paths Without Return              | :x:                | :x:        |
-| **Infrastructure**                                      | :question:         | :notebook: |
+| **Infrastructure**                                      | :heavy_check_mark: | :notebook: |
 | **»** Maven Plugin                                      | :heavy_check_mark: | :notebook: |
 | **»** Testing Support in Maven Plugin                   | :heavy_check_mark: | :notebook: |
 | **»** Algorithms & Data Structures                      | :question:         | :question: |

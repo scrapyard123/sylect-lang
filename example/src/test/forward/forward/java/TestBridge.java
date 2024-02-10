@@ -20,14 +20,6 @@ public final class TestBridge {
     }
 
     public static Comparator<Integer> createComparator() {
-        return Comparator.comparingInt(i -> (int) i);
-    }
-
-    public static Object asObj(Integer i) {
-        return i;
-    }
-
-    public static Object asObj(List<?> list) {
-        return list;
+        return Comparator.comparingInt(i -> i);
     }
 }

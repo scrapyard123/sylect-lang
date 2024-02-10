@@ -3,12 +3,19 @@
 package forward.bootstrap.metadata;
 
 import forward.ForwardParser.TypeContext;
+import forward.bootstrap.CompilationException;
 import forward.bootstrap.ScopeManager;
 
 public record TypeMeta(Kind kind, boolean isArray, String className) {
 
     public static TypeMeta fromContext(ScopeManager scopeManager, TypeContext ctx) {
         var typeString = ctx.getText();
+
+        boolean isBlackBox = false;
+        if (typeString.endsWith("!")) {
+            isBlackBox = true;
+            typeString = typeString.substring(0, typeString.length() - 1);
+        }
 
         boolean isArray = false;
         if (typeString.endsWith("[]")) {
@@ -22,8 +29,19 @@ public record TypeMeta(Kind kind, boolean isArray, String className) {
             case "long" -> Kind.LONG;
             case "float" -> Kind.FLOAT;
             case "double" -> Kind.DOUBLE;
+
+            case "bool" -> Kind.BOOLEAN;
+            case "byte" -> Kind.BYTE;
+            case "char" -> Kind.CHAR;
+            case "short" -> Kind.SHORT;
+
             default -> Kind.CLASS;
         };
+
+        if (!isBlackBox && (isArray || kind.isBlackBox())) {
+            throw new CompilationException("arrays, bools, bytes, chars and shorts have only black-box support");
+        }
+
         return new TypeMeta(
                 kind, isArray,
                 kind == Kind.CLASS ? scopeManager.resolveImport(typeString) : null);
@@ -72,6 +90,10 @@ public record TypeMeta(Kind kind, boolean isArray, String className) {
         return new TypeMeta(kind, false, className);
     }
 
+    public boolean isBlackBoxType() {
+        return isArray || kind.isBlackBox();
+    }
+
     public int getLocalSize() {
         return switch (kind) {
             case VOID -> 0;
@@ -83,6 +105,7 @@ public record TypeMeta(Kind kind, boolean isArray, String className) {
     public String asDescriptor() {
         return (isArray ? "[" : "") + switch (kind) {
             case VOID -> "V";
+
             case INTEGER -> "I";
             case LONG -> "J";
             case FLOAT -> "F";
@@ -100,7 +123,11 @@ public record TypeMeta(Kind kind, boolean isArray, String className) {
         // Supported by Forward
         VOID, INTEGER, LONG, FLOAT, DOUBLE, CLASS,
 
-        // Supported by Java
-        BOOLEAN, BYTE, CHAR, SHORT
+        // Supported by Java: black-box support from Forward
+        BOOLEAN, BYTE, CHAR, SHORT;
+
+        public boolean isBlackBox() {
+            return this == Kind.BOOLEAN || this == Kind.BYTE || this == Kind.CHAR || this == Kind.SHORT;
+        }
     }
 }

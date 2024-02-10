@@ -5,15 +5,11 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>forward</groupId>
-        <artifactId>lang</artifactId>
+        <artifactId>parent</artifactId>
         <version>0.1</version>
     </parent>
 
     <artifactId>example</artifactId>
-
-    <properties>
-        <forward.target>17</forward.target>
-    </properties>
 
     <build>
         <sourceDirectory>src/main/forward</sourceDirectory>
@@ -23,7 +19,7 @@
             <plugin>
                 <groupId>forward</groupId>
                 <artifactId>maven-plugin</artifactId>
-                <version>0.1</version>
+                <version>${project.version}</version>
                 <executions>
                     <execution>
                         <id>compile</id>
@@ -41,46 +37,6 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>3.2.2</version>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.2.3</version>
-            </plugin>
         </plugins>
     </build>
-
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-dependencies</artifactId>
-                <version>3.2.2</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-
-    <dependencies>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-thymeleaf</artifactId>
-        </dependency>
-
-        <dependency>
-            <groupId>org.junit.jupiter</groupId>
-            <artifactId>junit-jupiter-engine</artifactId>
-            <version>5.10.1</version>
-            <scope>test</scope>
-        </dependency>
-    </dependencies>
 </project>

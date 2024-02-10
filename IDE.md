@@ -22,13 +22,14 @@ First tab:
 break
 class
 continue
+each
 else
 if
 import
 interface
 return
 static
-each
+this
 var
 while
 ```

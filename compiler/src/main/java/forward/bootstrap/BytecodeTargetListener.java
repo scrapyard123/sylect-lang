@@ -23,7 +23,6 @@ import forward.bootstrap.metadata.TypeMeta.Kind;
 import forward.bootstrap.util.ClassUtils;
 import forward.bootstrap.util.LoopContext;
 import forward.bootstrap.util.Pair;
-import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
@@ -33,7 +32,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 import java.util.Stack;
-import java.util.function.Function;
 
 public class BytecodeTargetListener extends ForwardBaseListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(BytecodeTargetListener.class);
@@ -282,13 +280,22 @@ public class BytecodeTargetListener extends ForwardBaseListener {
             throw new CompilationException("cannot return " + expressionType + " as " + methodMeta.returnType());
         }
 
+        if (expressionType.isArray()) {
+            mv.visitInsn(Opcodes.ARETURN);
+            return;
+        }
+
         switch (expressionType.kind()) {
             case VOID -> mv.visitInsn(Opcodes.RETURN);
+
             case INTEGER -> mv.visitInsn(Opcodes.IRETURN);
             case LONG -> mv.visitInsn(Opcodes.LRETURN);
             case FLOAT -> mv.visitInsn(Opcodes.FRETURN);
             case DOUBLE -> mv.visitInsn(Opcodes.DRETURN);
             case CLASS -> mv.visitInsn(Opcodes.ARETURN);
+
+            case BOOLEAN, BYTE, CHAR, SHORT -> mv.visitInsn(Opcodes.IRETURN);
+
             default -> throw new CompilationException("unsupported return type: " + expressionType);
         }
     }

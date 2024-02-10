@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>forward</groupId>
-        <artifactId>lang</artifactId>
+        <artifactId>parent</artifactId>
         <version>0.1</version>
     </parent>
 
@@ -13,18 +13,24 @@
     <packaging>maven-plugin</packaging>
 
     <properties>
-        <maven.compiler.source>17</maven.compiler.source>
-        <maven.compiler.target>17</maven.compiler.target>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-
         <maven-plugin-tools.version>3.10.2</maven-plugin-tools.version>
     </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-plugin-plugin</artifactId>
+                <version>${maven-plugin-tools.version}</version>
+            </plugin>
+        </plugins>
+    </build>
 
     <dependencies>
         <dependency>
             <groupId>forward</groupId>
             <artifactId>compiler</artifactId>
-            <version>0.1</version>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
@@ -46,14 +52,4 @@
             <scope>provided</scope>
         </dependency>
     </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-plugin-plugin</artifactId>
-                <version>${maven-plugin-tools.version}</version>
-            </plugin>
-        </plugins>
-    </build>
 </project>

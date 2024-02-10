@@ -7,6 +7,7 @@ import forward.bootstrap.metadata.MethodMeta;
 import forward.bootstrap.metadata.TypeMeta;
 import forward.bootstrap.util.ClassUtils;
 import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.Type;
 
 import java.util.function.Function;
 
@@ -43,7 +44,7 @@ public class AnnotationCompiler {
         }
 
         for (var param : ctx.annotationParameter()) {
-            var name = param.IDENTIFIER().getText();
+            var name = param.IDENTIFIER(0).getText();
             var paramType = classMeta.methods().stream()
                     .filter(method -> method.name().equals(name))
                     .map(MethodMeta::returnType)
@@ -65,7 +66,7 @@ public class AnnotationCompiler {
             AnnotationVisitor visitor,
             ForwardParser.AnnotationParameterContext param) {
 
-        if (param.LITERAL().size() > 1 || param.annotationDefinition().size() > 1) {
+        if (param.LITERAL().size() > 1 || param.IDENTIFIER().size() > 2 || param.annotationDefinition().size() > 1) {
             throw new CompilationException("single value is expected: " + name);
         }
 
@@ -74,6 +75,12 @@ public class AnnotationCompiler {
             if (!literalType.equals(paramType)) {
                 throw new CompilationException("bad literal type " + literalType + ", expected: " + paramType);
             }
+        }
+        if (param.IDENTIFIER().size() > 1) {
+            visitor.visit(name, Type.getType(
+                    scopeManager.resolveClass(scopeManager.resolveImport(param.IDENTIFIER(1).getText()))
+                            .asTypeMeta()
+                            .asDescriptor()));
         }
         if (!param.annotationDefinition().isEmpty()) {
             visitAnnotationDefinition(
@@ -92,20 +99,26 @@ public class AnnotationCompiler {
         var elementType = paramType.arrayElementType();
 
         if (!param.LITERAL().isEmpty()) {
-            param.LITERAL().forEach(node -> {
-                var literalType = ClassUtils.visitLiteral(node, value -> arrayVisitor.visit(null, value));
+            param.LITERAL().forEach(ctx -> {
+                var literalType = ClassUtils.visitLiteral(ctx, value -> arrayVisitor.visit(null, value));
                 if (!literalType.equals(elementType)) {
                     throw new CompilationException("bad literal type " + literalType + ", expected: " + paramType);
                 }
             });
         }
+        if (param.IDENTIFIER().size() > 1) {
+            param.IDENTIFIER().forEach(ctx ->
+                    visitor.visit(name, Type.getType(
+                            scopeManager.resolveClass(scopeManager.resolveImport(ctx.getText()))
+                                    .asTypeMeta()
+                                    .asDescriptor())));
+        }
         if (!param.annotationDefinition().isEmpty()) {
-            param.annotationDefinition().forEach(definition -> {
-                visitAnnotationDefinition(
-                        definition,
-                        desc -> arrayVisitor.visitAnnotation(null, desc),
-                        elementType);
-            });
+            param.annotationDefinition().forEach(ctx ->
+                    visitAnnotationDefinition(
+                            ctx,
+                            desc -> arrayVisitor.visitAnnotation(null, desc),
+                            elementType));
         }
 
         arrayVisitor.visitEnd();

@@ -150,7 +150,10 @@ public class ScopeManager {
         if (currentClassMethodMeta == null) {
             if (classMeta.iface()) {
                 for (String interfaze : classMeta.interfaces()) {
-                    return getMethod(resolveClass(interfaze), name, parameterTypes);
+                    var methodMeta = getMethod(resolveClass(interfaze), name, parameterTypes);
+                    if (methodMeta != null) {
+                        return methodMeta;
+                    }
                 }
             } else {
                 if (classMeta.baseClassName() == null) {

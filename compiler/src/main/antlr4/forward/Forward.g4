@@ -25,7 +25,7 @@ parameter: IDENTIFIER ':' type annotationBlock?;
 
 annotationBlock: '[' annotationDefinition+ ']';
 annotationDefinition: type ('[' annotationParameter+ ']')?;
-annotationParameter: IDENTIFIER '{' (LITERAL+ | annotationDefinition+) '}';
+annotationParameter: IDENTIFIER '{' (LITERAL+ | IDENTIFIER+ | annotationDefinition+) '}';
 
 statement:
     variableDefinitionStatement | assignmentStatement | expressionStatement |
@@ -52,7 +52,7 @@ accessExpression: accessTerm ('->' accessTerm)*;
 accessTerm: IDENTIFIER ('(' expression* ')')?;
 
 // TODO: Add support for !, &&, ||
-unaryOp: '-';
+unaryOp: '-' | '[' type ']';
 operator:
     '*' | '/' | '%' |
     '+' | '-' |
@@ -63,7 +63,8 @@ operator:
     '^' |
     '|';
 
-type: ('void' | 'int' | 'long' | 'float' | 'double' | IDENTIFIER) '[]'?;
+type: ('void' | 'int' | 'long' | 'float' | 'double' |
+    'bool' | 'byte' | 'char' | 'short' | IDENTIFIER) '[]'? '!'?;
 
 LITERAL: [0-9.]+ ('L' | 'F')? | '"' .*? '"';
 IDENTIFIER: [a-zA-Z] ([a-zA-Z0-9_.$])*;

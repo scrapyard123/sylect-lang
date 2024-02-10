@@ -2,8 +2,10 @@
 
 package forward.bootstrap;
 
+import forward.ForwardParser;
 import forward.ForwardParser.ExpressionContext;
 import forward.ForwardParser.TermContext;
+import forward.bootstrap.metadata.ClassMeta;
 import forward.bootstrap.metadata.TypeMeta;
 import forward.bootstrap.metadata.TypeMeta.Kind;
 import forward.bootstrap.metadata.expression.OperatorMeta;
@@ -77,19 +79,7 @@ public class ExpressionCompiler {
 
         if (ctx.unaryOp() != null) {
             for (var unaryOpContext : ctx.unaryOp()) {
-                var unaryOp = UnaryOperatorMeta.fromContext(unaryOpContext);
-                switch (unaryOp) {
-                    case MINUS -> {
-                        switch (operandType.kind()) {
-                            case INTEGER -> mv.visitInsn(Opcodes.INEG);
-                            case LONG -> mv.visitInsn(Opcodes.LNEG);
-                            case FLOAT -> mv.visitInsn(Opcodes.FNEG);
-                            case DOUBLE -> mv.visitInsn(Opcodes.DNEG);
-                            default -> throw new CompilationException("could not negate: " + operandType);
-                        }
-                    }
-                    default -> throw new CompilationException("unsupported unary operator: " + unaryOp);
-                }
+                operandType = compileUnaryOperation(unaryOpContext, operandType);
             }
         }
 
@@ -97,6 +87,60 @@ public class ExpressionCompiler {
             throw new CompilationException("failed to compile term: " + ctx.getText());
         } else {
             return operandType;
+        }
+    }
+
+    private TypeMeta compileUnaryOperation(ForwardParser.UnaryOpContext ctx, TypeMeta operandType) {
+        var unaryOp = UnaryOperatorMeta.fromContext(ctx);
+        return switch (unaryOp) {
+            case MINUS -> {
+                switch (operandType.kind()) {
+                    case INTEGER -> mv.visitInsn(Opcodes.INEG);
+                    case LONG -> mv.visitInsn(Opcodes.LNEG);
+                    case FLOAT -> mv.visitInsn(Opcodes.FNEG);
+                    case DOUBLE -> mv.visitInsn(Opcodes.DNEG);
+                    default -> throw new CompilationException("could not negate: " + operandType);
+                }
+                yield operandType;
+            }
+
+            case TYPE_CONVERSION -> {
+                var targetType = TypeMeta.fromContext(scopeManager, ctx.type());
+
+                if (targetType.isBlackBoxType() || operandType.isBlackBoxType()) {
+                    throw new CompilationException("cannot convert to/from black-box types");
+                }
+
+                switch (operandType.kind()) {
+                    case INTEGER -> compileTypeConversion(
+                            targetType, Opcodes.NOP, Opcodes.I2L, Opcodes.I2F, Opcodes.I2D);
+                    case LONG -> compileTypeConversion(
+                            targetType, Opcodes.L2I, Opcodes.NOP, Opcodes.L2F, Opcodes.L2D);
+                    case FLOAT -> compileTypeConversion(
+                            targetType, Opcodes.F2I, Opcodes.F2L, Opcodes.NOP, Opcodes.F2D);
+                    case DOUBLE -> compileTypeConversion(
+                            targetType, Opcodes.D2I, Opcodes.D2L, Opcodes.D2F, Opcodes.NOP);
+
+                    case CLASS -> mv.visitTypeInsn(
+                            Opcodes.CHECKCAST,
+                            ClassMeta.javaClassFromClassName(targetType.className()));
+
+                    default -> throw new CompilationException(
+                            "could not convert " + operandType + " to " + targetType);
+                }
+
+                yield targetType;
+            }
+        };
+    }
+
+    private void compileTypeConversion(TypeMeta targetType, int toInt, int toLong, int toFloat, int toDouble) {
+        switch (targetType.kind()) {
+            case INTEGER -> mv.visitInsn(toInt);
+            case LONG -> mv.visitInsn(toLong);
+            case FLOAT -> mv.visitInsn(toFloat);
+            case DOUBLE -> mv.visitInsn(toDouble);
+            default -> throw new CompilationException("could not convert to: " + targetType);
         }
     }
 
