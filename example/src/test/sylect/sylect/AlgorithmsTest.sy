@@ -1,0 +1,48 @@
+import {
+    java.lang.Integer
+    java.lang.Object
+
+    java.util.List
+
+    org.junit.jupiter.api.Assertions
+    org.junit.jupiter.api.Test
+
+    sylect.Algorithms
+    sylect.java.TestBridge
+}
+
+class sylect.AlgorithmsTest
+
+a:Algorithms
+
+constructor():void {
+    a = TestBridge->createAlgorithms()
+}
+
+fibonacciIterativeTest():void [Test] {
+    Assertions->assertEquals(-1L a->fibIter(-10L))
+    Assertions->assertEquals(0L a->fibIter(0L))
+    Assertions->assertEquals(1L a->fibIter(1L))
+    Assertions->assertEquals(55L a->fibIter(10L))
+}
+
+fibonacciRecursiveTest():void [Test] {
+    Assertions->assertEquals(-1L a->fibRec(-10L))
+    Assertions->assertEquals(0L a->fibRec(0L))
+    Assertions->assertEquals(1L a->fibRec(1L))
+    Assertions->assertEquals(55L a->fibRec(10L))
+}
+
+bubbleSortTest():void [Test] {
+    var actual:List = TestBridge->asMutable(
+        List->of(box(1) box(2) box(5) box(3) box(4) box(5)))
+    a->bubbleSort(actual TestBridge->createComparator())
+
+    var expected:List = List->of(
+        box(5) box(5) box(4) box(3) box(2) box(1))
+    Assertions->assertEquals([Object]expected [Object]actual)
+}
+
+static box(i:int):Object {
+    return [Object]Integer->valueOf(i)
+}

@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>forward</groupId>
+        <groupId>sylect</groupId>
         <artifactId>parent</artifactId>
         <version>0.1</version>
     </parent>
@@ -12,12 +12,12 @@
     <artifactId>example</artifactId>
 
     <build>
-        <sourceDirectory>src/main/forward</sourceDirectory>
-        <testSourceDirectory>src/test/forward</testSourceDirectory>
+        <sourceDirectory>src/main/sylect</sourceDirectory>
+        <testSourceDirectory>src/test/sylect</testSourceDirectory>
 
         <plugins>
             <plugin>
-                <groupId>forward</groupId>
+                <groupId>sylect</groupId>
                 <artifactId>maven-plugin</artifactId>
                 <version>${project.version}</version>
                 <executions>
@@ -25,14 +25,14 @@
                         <id>compile</id>
                         <phase>compile</phase>
                         <goals>
-                            <goal>compile-forward</goal>
+                            <goal>compile-sylect</goal>
                         </goals>
                     </execution>
                     <execution>
                         <id>test-compile</id>
                         <phase>test-compile</phase>
                         <goals>
-                            <goal>test-compile-forward</goal>
+                            <goal>test-compile-sylect</goal>
                         </goals>
                     </execution>
                 </executions>
