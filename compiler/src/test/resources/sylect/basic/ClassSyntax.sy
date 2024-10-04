@@ -8,6 +8,7 @@ import {
     java.lang.AutoCloseable
     java.lang.Cloneable
     java.lang.Object
+    java.lang.String
 
     java.lang.Deprecated
     java.lang.SuppressWarnings
@@ -77,7 +78,13 @@ testMethod(
         e = e - 1
     }
 
-    // Language only supports while loop with (optional) "then" block
+    // You can use bitwise operators in conditional statements, but they are NOT short-circuiting.
+    // In place of short-circuiting, consider using usual conditional statements.
+    if !(2 > 3) & (4 < 5) {
+        e = e + 1
+    }
+
+    // Language only supports while loop with (optional) "each" block
     // which is always executed at the end of the iteration.
     var sum:int = 0
     var i:int = 0 while i < 8 {
@@ -88,6 +95,10 @@ testMethod(
     } each {
         i = i + 1
     }
+
+    // Objects are created by calling class name as if it was a method.
+    var str:String = String("he")->concat("llo")
+    e = e + str->length()
 
     // Return statement supports expressions.
     return var1 + 2 * (var1 - 1) + e + sum

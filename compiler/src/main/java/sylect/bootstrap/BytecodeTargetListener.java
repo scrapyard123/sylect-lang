@@ -2,6 +2,7 @@
 
 package sylect.bootstrap;
 
+import sylect.CompilationException;
 import sylect.SylectBaseListener;
 import sylect.SylectParser;
 import sylect.SylectParser.AssignmentStatementContext;
@@ -14,6 +15,8 @@ import sylect.SylectParser.LoopStatementContext;
 import sylect.SylectParser.MethodDefinitionContext;
 import sylect.SylectParser.ProgramContext;
 import sylect.SylectParser.ReturnStatementContext;
+import sylect.bootstrap.support.AnnotationCompiler;
+import sylect.bootstrap.support.ExpressionCompiler;
 import sylect.bootstrap.metadata.ClassMeta;
 import sylect.bootstrap.metadata.FieldMeta;
 import sylect.bootstrap.metadata.LocalMeta;
@@ -21,8 +24,8 @@ import sylect.bootstrap.metadata.MethodMeta;
 import sylect.bootstrap.metadata.TypeMeta;
 import sylect.bootstrap.metadata.TypeMeta.Kind;
 import sylect.bootstrap.util.ClassUtils;
-import sylect.bootstrap.util.LoopContext;
-import sylect.bootstrap.util.Pair;
+import sylect.bootstrap.metadata.statement.LoopContext;
+import sylect.util.Pair;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;

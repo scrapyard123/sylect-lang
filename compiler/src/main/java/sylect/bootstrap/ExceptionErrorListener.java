@@ -5,6 +5,7 @@ package sylect.bootstrap;
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
+import sylect.CompilationException;
 
 public class ExceptionErrorListener extends BaseErrorListener {
     @Override

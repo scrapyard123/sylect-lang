@@ -6,6 +6,8 @@ import sylect.bootstrap.metadata.ClassMeta;
 import sylect.bootstrap.metadata.TypeMeta;
 
 /**
+ * Class holding the type of current object in chain of field access and method call operations.
+ *
  * @param classMeta {@link ClassMeta} represents class that we are working with
  * @param typeMeta {@link TypeMeta} represents value that we are working with
  */

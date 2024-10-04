@@ -51,8 +51,7 @@ term: unaryOp* (LITERAL | accessExpression | '(' expression ')');
 accessExpression: accessTerm ('->' accessTerm)*;
 accessTerm: IDENTIFIER ('(' expression* ')')?;
 
-// TODO: Add support for !, &&, ||
-unaryOp: '-' | '[' type ']';
+unaryOp: '-' | '!' | '[' type ']';
 operator:
     '*' | '/' | '%' |
     '+' | '-' |

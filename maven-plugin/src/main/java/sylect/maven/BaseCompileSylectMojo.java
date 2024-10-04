@@ -2,13 +2,13 @@
 
 package sylect.maven;
 
-import sylect.bootstrap.BootstrapCompiler;
-import sylect.bootstrap.CompilationException;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
+import sylect.SylectCompilerRunner;
+import sylect.CompilationException;
 
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -50,7 +50,7 @@ abstract public class BaseCompileSylectMojo extends AbstractMojo {
                 project.getBuild().getOutputDirectory();
 
         try {
-            BootstrapCompiler.compileSourceTrees(
+            SylectCompilerRunner.compileSourceTrees(
                     classLoader,
                     target,
                     sourceRoots.stream()

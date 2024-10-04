@@ -1,8 +1,10 @@
 // SPDX-License-Identifier: MIT
 
-package sylect.bootstrap;
+package sylect.bootstrap.support;
 
 import sylect.SylectParser;
+import sylect.CompilationException;
+import sylect.bootstrap.ScopeManager;
 import sylect.bootstrap.metadata.MethodMeta;
 import sylect.bootstrap.metadata.TypeMeta;
 import sylect.bootstrap.util.ClassUtils;

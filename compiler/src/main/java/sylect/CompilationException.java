@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-package sylect.bootstrap;
+package sylect;
 
 public class CompilationException extends RuntimeException {
     public CompilationException(String message) {

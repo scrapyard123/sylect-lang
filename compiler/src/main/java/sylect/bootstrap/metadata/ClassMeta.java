@@ -2,19 +2,22 @@
 
 package sylect.bootstrap.metadata;
 
+import org.antlr.v4.runtime.tree.TerminalNode;
+import sylect.CompilationException;
 import sylect.SylectParser;
 import sylect.SylectParser.BaseClassContext;
 import sylect.SylectParser.ClassDefinitionContext;
 import sylect.SylectParser.ProgramContext;
-import sylect.bootstrap.CompilationException;
 import sylect.bootstrap.ScopeManager;
-import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Parameter;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public record ClassMeta(String name, boolean iface,
                         String baseClassName, Set<String> interfaces,
@@ -84,22 +87,32 @@ public record ClassMeta(String name, boolean iface,
                         Modifier.isStatic(field.getModifiers()),
                         TypeMeta.fromJavaType(field.getType())))
                 .collect(Collectors.toSet());
-        var methods = Arrays.stream(clazz.getDeclaredMethods())
-                .map(method -> new MethodMeta(
-                        method.getName(),
-                        Modifier.isStatic(method.getModifiers()),
-                        Modifier.isAbstract(method.getModifiers()),
-                        TypeMeta.fromJavaType(method.getReturnType()),
-                        Arrays.stream(method.getParameters())
-                                .map(parameter -> new ParameterMeta(
-                                        parameter.getName(),
-                                        TypeMeta.fromJavaType(parameter.getType())))
-                                .collect(Collectors.toList())))
+        var methods = Stream.concat(
+                        Arrays.stream(clazz.getDeclaredConstructors())
+                                .map(constructor -> new MethodMeta(
+                                        "<init>",
+                                        false,
+                                        false,
+                                        new TypeMeta(TypeMeta.Kind.VOID, false, null),
+                                        convertParameters(constructor.getParameters()))),
+                        Arrays.stream(clazz.getDeclaredMethods())
+                                .map(method -> new MethodMeta(
+                                        method.getName(),
+                                        Modifier.isStatic(method.getModifiers()),
+                                        Modifier.isAbstract(method.getModifiers()),
+                                        TypeMeta.fromJavaType(method.getReturnType()),
+                                        convertParameters(method.getParameters()))))
                 .collect(Collectors.toSet());
         return new ClassMeta(className, clazz.isInterface(), baseClassName, interfaces, fields, methods);
     }
 
     public TypeMeta asTypeMeta() {
         return new TypeMeta(TypeMeta.Kind.CLASS, false, name);
+    }
+
+    private static List<ParameterMeta> convertParameters(Parameter[] parameters) {
+        return Arrays.stream(parameters)
+                .map(ParameterMeta::fromJavaParameter)
+                .collect(Collectors.toList());
     }
 }

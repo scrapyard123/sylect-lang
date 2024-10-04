@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 public class SyntaxTest extends AbstractCompilerTest {
+
     @Test
     public void syntaxTest() {
         testCompiler("sylect.basic.ClassSyntax", "sylect/basic/ClassSyntax.sy", (clazz, obj) -> {
@@ -13,7 +14,7 @@ public class SyntaxTest extends AbstractCompilerTest {
             Assertions.assertTrue(obj instanceof AutoCloseable);
 
             var result = callMethod(obj, "testMethod", 5, 0);
-            Assertions.assertEquals(38, result);
+            Assertions.assertEquals(44, result);
 
             result = callMethod(obj, "staticTestMethod");
             Assertions.assertEquals(System.err, result);

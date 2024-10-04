@@ -3,7 +3,7 @@
 package sylect.bootstrap.metadata;
 
 import sylect.SylectParser.TypeContext;
-import sylect.bootstrap.CompilationException;
+import sylect.CompilationException;
 import sylect.bootstrap.ScopeManager;
 
 public record TypeMeta(Kind kind, boolean isArray, String className) {

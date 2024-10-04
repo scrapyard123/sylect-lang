@@ -2,6 +2,7 @@
 
 package sylect.bootstrap;
 
+import sylect.CompilationException;
 import sylect.SylectParser.ClassDefinitionContext;
 import sylect.SylectParser.ImportSectionContext;
 import sylect.SylectParser.MethodDefinitionContext;
@@ -31,6 +32,8 @@ public class ScopeManager {
 
     private Map<String, String> imports;
     private ClassMeta classMeta;
+
+    private boolean staticMethod = false;
     private int currentOffset = 0;
 
     public ScopeManager(ClassLoader classLoader) {
@@ -86,15 +89,20 @@ public class ScopeManager {
 
         // TODO: Use class meta to get this
         var methodMeta = MethodMeta.fromContext(this, ctx);
-        if (!methodMeta.isStatic()) {
+        staticMethod = methodMeta.isStatic();
+
+        if (!staticMethod) {
             addLocal("this", classMeta.asTypeMeta());
         }
-
         for (var parameter : methodMeta.parameters()) {
             addLocal(parameter.name(), parameter.type());
         }
 
         return methodMeta;
+    }
+
+    public boolean isStaticMethod() {
+        return staticMethod;
     }
 
     public LocalMeta addLocal(String name, TypeMeta type) {
@@ -132,10 +140,6 @@ public class ScopeManager {
             return getField(resolveClass(classMeta.baseClassName()), name);
         }
         return currentClassFieldMeta;
-    }
-
-    public MethodMeta getMethod(String name, List<TypeMeta> parameterTypes) {
-        return getMethod(classMeta, name, parameterTypes);
     }
 
     public MethodMeta getMethod(ClassMeta classMeta, String name, List<TypeMeta> parameterTypes) {

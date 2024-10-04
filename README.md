@@ -80,7 +80,7 @@ Place your sources in `src/{main,test}/sylect` and add the following to `pom.xml
 | **»** Parameter-less Annotations                        | :heavy_check_mark: | :notebook: |
 | **»** Annotation Parameters                             | :heavy_check_mark: | :notebook: |
 | **»** Array Parameters                                  | :heavy_check_mark: | :question: |
-| **Statement Types**                                     | :construction:     | :notebook: |
+| **Statement Types**                                     | :heavy_check_mark: | :notebook: |
 | **»** Variable Definition                               | :heavy_check_mark: | :notebook: |
 | **»** Assignment                                        | :heavy_check_mark: | :notebook: |
 | **»** Standalone Expression                             | :heavy_check_mark: | :notebook: |
@@ -100,18 +100,18 @@ Place your sources in `src/{main,test}/sylect` and add the following to `pom.xml
 | **Expressions**                                         | :construction:     | :notebook: |
 | **»** Numerical Literals                                | :heavy_check_mark: | :notebook: |
 | **»** String Literals                                   | :heavy_check_mark: | :notebook: |
-| **»** Class Literals                                    | :recycle:          | :notebook: |
-| **»** Field/Variable Access                             | :recycle:          | :notebook: |
-| **»** Object Instantiation                              | :notebook:         | :notebook: |
+| **»** Class Literals                                    | :heavy_check_mark: | :notebook: |
+| **»** Field/Variable Access                             | :heavy_check_mark: | :notebook: |
+| **»** Object Instantiation                              | :heavy_check_mark: | :notebook: |
 | **»** Array Instantiation                               | :x:                | :x:        |
 | **»** null                                              | :x:                | :x:        |
 | **»** Mathematical Operators                            | :heavy_check_mark: | :notebook: |
 | **»** Comparison Operators                              | :heavy_check_mark: | :notebook: |
 | **»** Proper NaN Treatment During Comparison            | :question:         | :question: |
-| **»** Logical Operators                                 | :notebook:         | :notebook: |
+| **»** Boolean Operators                                 | :x:                | :x:        |
 | **»** Array Operators                                   | :x:                | :x:        |
-| **»** Method Calls                                      | :recycle:          | :notebook: |
-| **»** Constructor Calls                                 | :notebook:         | :notebook: |
+| **»** Method Calls                                      | :heavy_check_mark: | :notebook: |
+| **»** Super/Constructor Calls                           | :notebook:         | :notebook: |
 | **»** Type Conversion                                   | :heavy_check_mark: | :notebook: |
 | **Method Calls**                                        | :heavy_check_mark: | :notebook: |
 | **»** Basic Method Calls                                | :heavy_check_mark: | :notebook: |

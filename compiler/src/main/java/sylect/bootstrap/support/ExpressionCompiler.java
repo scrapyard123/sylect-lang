@@ -1,10 +1,12 @@
 // SPDX-License-Identifier: MIT
 
-package sylect.bootstrap;
+package sylect.bootstrap.support;
 
 import sylect.SylectParser;
 import sylect.SylectParser.ExpressionContext;
 import sylect.SylectParser.TermContext;
+import sylect.CompilationException;
+import sylect.bootstrap.ScopeManager;
 import sylect.bootstrap.metadata.ClassMeta;
 import sylect.bootstrap.metadata.TypeMeta;
 import sylect.bootstrap.metadata.TypeMeta.Kind;
@@ -102,6 +104,27 @@ public class ExpressionCompiler {
                     default -> throw new CompilationException("could not negate: " + operandType);
                 }
                 yield operandType;
+            }
+
+            case NOT -> {
+                if (operandType.kind() != Kind.INTEGER) {
+                    throw new CompilationException("NOT operator works only on integers: " + operandType);
+                }
+
+                var whenZero = new Label();
+                var otherCode = new Label();
+
+                // If stack top is zero - place 1, otherwise place 0
+                mv.visitJumpInsn(Opcodes.IFEQ, whenZero);
+                mv.visitLdcInsn(0);
+                mv.visitJumpInsn(Opcodes.GOTO, otherCode);
+
+                mv.visitLabel(whenZero);
+                mv.visitLdcInsn(1);
+
+                mv.visitLabel(otherCode);
+
+                yield operandType; // always integer
             }
 
             case TYPE_CONVERSION -> {

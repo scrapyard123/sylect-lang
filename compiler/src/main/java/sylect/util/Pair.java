@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-package sylect.bootstrap.util;
+package sylect.util;
 
 public record Pair<T, U>(T left, U right) {
 }

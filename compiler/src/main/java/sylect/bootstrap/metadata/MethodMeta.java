@@ -3,7 +3,7 @@
 package sylect.bootstrap.metadata;
 
 import sylect.SylectParser.MethodDefinitionContext;
-import sylect.bootstrap.CompilationException;
+import sylect.CompilationException;
 import sylect.bootstrap.ScopeManager;
 
 import java.util.List;

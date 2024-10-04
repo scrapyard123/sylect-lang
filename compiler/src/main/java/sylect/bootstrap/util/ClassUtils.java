@@ -1,6 +1,6 @@
 package sylect.bootstrap.util;
 
-import sylect.bootstrap.CompilationException;
+import sylect.CompilationException;
 import sylect.bootstrap.metadata.TypeMeta;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.objectweb.asm.Opcodes;
@@ -28,6 +28,9 @@ public final class ClassUtils {
             case 17 -> Opcodes.V17;
             case 18 -> Opcodes.V18;
             case 19 -> Opcodes.V19;
+            case 20 -> Opcodes.V20;
+            case 21 -> Opcodes.V21;
+            case 22 -> Opcodes.V22;
             default -> throw new CompilationException("unsupported target: " + target);
         };
     }

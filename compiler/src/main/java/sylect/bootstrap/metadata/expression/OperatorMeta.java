@@ -3,7 +3,7 @@
 package sylect.bootstrap.metadata.expression;
 
 import sylect.SylectParser.OperatorContext;
-import sylect.bootstrap.CompilationException;
+import sylect.CompilationException;
 
 public enum OperatorMeta {
     MULTIPLY(7), DIVIDE(7), REM(7),

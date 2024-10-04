@@ -1,4 +1,4 @@
-package sylect.bootstrap.util;
+package sylect.bootstrap.metadata.statement;
 
 import org.objectweb.asm.Label;
 
