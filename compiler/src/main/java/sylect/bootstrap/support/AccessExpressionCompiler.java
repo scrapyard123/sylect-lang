@@ -153,15 +153,13 @@ public class AccessExpressionCompiler {
 
         var method = scopeManager.getMethod(classMeta, newObject ? "<init>" : identifier, parameterTypes);
         if (method == null) {
-            throw new CompilationException(
-                    "unknown method: " + identifier + " in " + scopeManager.getClassMeta().name());
+            throw new CompilationException("unknown method: " + identifier + " in " + classMeta.name());
         }
 
         // Target method must be static if called from static method or when called on class
         if ((accessMeta == null && scopeManager.isStaticMethod()) || (accessMeta != null && accessMeta.isClassMeta())) {
             if (!method.isStatic()) {
-                throw new CompilationException(
-                        "method is not static: " + method.name() + " in " + classMeta.name());
+                throw new CompilationException("method is not static: " + method.name() + " in " + classMeta.name());
             }
         }
 

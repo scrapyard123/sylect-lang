@@ -1,0 +1,18 @@
+// SPDX-License-Identifier: MIT
+
+import {
+    java.lang.Integer
+    java.lang.Object
+
+    java.util.Comparator
+}
+
+class sylect.IntComparator : Comparator
+
+constructor():void { }
+
+compare(var1:Object var2:Object):int {
+    var int1:Integer = [Integer]var1
+    var int2:Integer = [Integer]var2
+    return Integer->compare(int1->intValue() int2->intValue())
+}

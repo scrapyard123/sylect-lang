@@ -2,13 +2,16 @@ import {
     java.lang.Integer
     java.lang.Object
 
+    java.util.ArrayList
+    java.util.Collection
+    java.util.Comparator
     java.util.List
 
     org.junit.jupiter.api.Assertions
     org.junit.jupiter.api.Test
 
     sylect.Algorithms
-    sylect.java.TestBridge
+    sylect.IntComparator
 }
 
 class sylect.AlgorithmsTest
@@ -16,7 +19,7 @@ class sylect.AlgorithmsTest
 a:Algorithms
 
 constructor():void {
-    a = TestBridge->createAlgorithms()
+    a = Algorithms()
 }
 
 fibonacciIterativeTest():void [Test] {
@@ -34,12 +37,10 @@ fibonacciRecursiveTest():void [Test] {
 }
 
 bubbleSortTest():void [Test] {
-    var actual:List = TestBridge->asMutable(
-        List->of(box(1) box(2) box(5) box(3) box(4) box(5)))
-    a->bubbleSort(actual TestBridge->createComparator())
+    var actual:ArrayList = ArrayList([Collection]List->of(box(1) box(2) box(5) box(3) box(4) box(5)))
+    a->bubbleSort([List]actual [Comparator]IntComparator())
 
-    var expected:List = List->of(
-        box(5) box(5) box(4) box(3) box(2) box(1))
+    var expected:List = List->of(box(5) box(5) box(4) box(3) box(2) box(1))
     Assertions->assertEquals([Object]expected [Object]actual)
 }
 
