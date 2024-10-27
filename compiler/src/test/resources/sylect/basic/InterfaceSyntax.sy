@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 
 // Interfaces are defined as follows.
-interface sylect.basic.InterfaceSyntax
+interface sylect/basic/InterfaceSyntax
 
 // Interfaces may contain both abstract and non-abstract methods.
 testMethod(a:int):int

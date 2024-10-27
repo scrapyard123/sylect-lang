@@ -32,7 +32,7 @@ statement:
     conditionalStatement | loopStatement | breakContinueStatement |
     returnStatement;
 
-variableDefinitionStatement: 'var' (IDENTIFIER ':' type ('=' expression)?)+;
+variableDefinitionStatement: 'var' IDENTIFIER '=' expression;
 assignmentStatement: IDENTIFIER '=' expression;
 expressionStatement: expression;
 
@@ -48,7 +48,7 @@ returnStatement: 'return' expression?;
 expression: term (operator term)*;
 term: unaryOp* (LITERAL | accessExpression | '(' expression ')');
 
-accessExpression: accessTerm ('->' accessTerm)*;
+accessExpression: accessTerm ('.' accessTerm)*;
 accessTerm: IDENTIFIER ('(' expression* ')')?;
 
 unaryOp: '-' | '!' | '[' type ']';
@@ -66,7 +66,7 @@ type: ('void' | 'int' | 'long' | 'float' | 'double' |
     'bool' | 'byte' | 'char' | 'short' | IDENTIFIER) '[]'? '!'?;
 
 LITERAL: [0-9.]+ ('L' | 'F')? | '"' .*? '"';
-IDENTIFIER: [a-zA-Z] ([a-zA-Z0-9_.$])*;
+IDENTIFIER: [a-zA-Z] ([a-zA-Z0-9_$/])*;
 
 LINE_COMMENT: '//' ~[\r\n]* -> skip;
 WS: [ \r\n\t]+ -> channel(HIDDEN);

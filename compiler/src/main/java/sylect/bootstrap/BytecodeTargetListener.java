@@ -17,7 +17,6 @@ import sylect.SylectParser.ProgramContext;
 import sylect.SylectParser.ReturnStatementContext;
 import sylect.bootstrap.support.AnnotationCompiler;
 import sylect.bootstrap.support.ExpressionCompiler;
-import sylect.bootstrap.metadata.ClassMeta;
 import sylect.bootstrap.metadata.FieldMeta;
 import sylect.bootstrap.metadata.LocalMeta;
 import sylect.bootstrap.metadata.MethodMeta;
@@ -78,12 +77,10 @@ public class BytecodeTargetListener extends SylectBaseListener {
         cw.visit(ClassUtils.getVersion(target),
                 Opcodes.ACC_PUBLIC +
                         (classMeta.iface() ? Opcodes.ACC_INTERFACE + Opcodes.ACC_ABSTRACT : Opcodes.ACC_SUPER),
-                ClassMeta.javaClassFromClassName(classMeta.name()),
+                classMeta.name(),
                 null,
-                ClassMeta.javaClassFromClassName(classMeta.baseClassName()),
-                classMeta.interfaces().stream()
-                        .map(ClassMeta::javaClassFromClassName)
-                        .toArray(String[]::new));
+                classMeta.baseClassName(),
+                classMeta.interfaces().toArray(String[]::new));
         annotationCompiler.visitAnnotationBlock(ctx.annotationBlock(), desc -> cw.visitAnnotation(desc, true));
     }
 
@@ -132,25 +129,19 @@ public class BytecodeTargetListener extends SylectBaseListener {
         if ("<init>".equals(methodMeta.name())) {
             var classMeta = scopeManager.getClassMeta();
             mv.visitVarInsn(Opcodes.ALOAD, 0);
-            mv.visitMethodInsn(Opcodes.INVOKESPECIAL,
-                    ClassMeta.javaClassFromClassName(classMeta.baseClassName()),
-                    "<init>", "()V", false);
+            mv.visitMethodInsn(Opcodes.INVOKESPECIAL, classMeta.baseClassName(), "<init>", "()V", false);
         }
     }
 
     @Override
     public void enterVariableDefinitionStatement(SylectParser.VariableDefinitionStatementContext ctx) {
-        for (int i = 0; i < ctx.IDENTIFIER().size(); i++) {
-            var localMeta = scopeManager.addLocal(
-                    ctx.IDENTIFIER().get(i).getText(),
-                    TypeMeta.fromContext(scopeManager, ctx.type(i)));
-            visitLocalVariable(localMeta);
-            LOGGER.debug("variable definition: {}", localMeta);
+        var expressionType = new ExpressionCompiler(scopeManager, mv).compile(ctx.expression());
 
-            if (ctx.expression(i) != null) {
-                assignLocalVariable(localMeta, ctx.expression(i));
-            }
-        }
+        var localMeta = scopeManager.addLocal(ctx.IDENTIFIER().getText(), expressionType);
+        LOGGER.debug("variable definition: {}", localMeta);
+
+        visitLocalVariable(localMeta);
+        assignLocalVariable(localMeta, expressionType);
     }
 
     @Override
@@ -160,7 +151,13 @@ public class BytecodeTargetListener extends SylectBaseListener {
         var localMeta = scopeManager.getLocal(name);
         if (localMeta != null) {
             LOGGER.debug("assignment statement: {} to {}", ctx.expression().getText(), localMeta);
-            assignLocalVariable(localMeta, ctx.expression());
+
+            var expressionType = new ExpressionCompiler(scopeManager, mv).compile(ctx.expression());
+            if (!expressionType.equals(localMeta.type())) {
+                throw new CompilationException("cannot assign " + expressionType + " to " + localMeta.type());
+            }
+
+            assignLocalVariable(localMeta, expressionType);
             return;
         }
 
@@ -348,12 +345,7 @@ public class BytecodeTargetListener extends SylectBaseListener {
                 localMeta.offset());
     }
 
-    private void assignLocalVariable(LocalMeta localMeta, SylectParser.ExpressionContext ctx) {
-        var expressionType = new ExpressionCompiler(scopeManager, mv).compile(ctx);
-        if (!expressionType.equals(localMeta.type())) {
-            throw new CompilationException("cannot assign " + expressionType + " to " + localMeta.type());
-        }
-
+    private void assignLocalVariable(LocalMeta localMeta, TypeMeta expressionType) {
         switch (expressionType.kind()) {
             case INTEGER -> mv.visitIntInsn(Opcodes.ISTORE, localMeta.offset());
             case LONG -> mv.visitIntInsn(Opcodes.LSTORE, localMeta.offset());
@@ -378,7 +370,7 @@ public class BytecodeTargetListener extends SylectBaseListener {
             throw new CompilationException("cannot assign " + expressionType + " to " + fieldMeta.type());
         }
 
-        var owner = ClassMeta.javaClassFromClassName(scopeManager.getClassMeta().name());
+        var owner = scopeManager.getClassMeta().name();
         mv.visitFieldInsn(
                 fieldMeta.isStatic() ? Opcodes.PUTSTATIC : Opcodes.PUTFIELD,
                 owner, fieldMeta.name(), fieldMeta.asDescriptor());

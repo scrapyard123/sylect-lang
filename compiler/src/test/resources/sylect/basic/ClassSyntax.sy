@@ -5,19 +5,19 @@
 
 // You can import other classes/interfaces/annotations.
 import {
-    java.lang.AutoCloseable
-    java.lang.Cloneable
-    java.lang.Object
-    java.lang.String
+    java/lang/AutoCloseable
+    java/lang/Cloneable
+    java/lang/Object
+    java/lang/String
 
-    java.lang.Deprecated
-    java.lang.SuppressWarnings
+    java/lang/Deprecated
+    java/lang/SuppressWarnings
 
-    java.io.PrintStream
+    java/io/PrintStream
 }
 
 // Each file contains exactly one class definition.
-class sylect.basic.ClassSyntax
+class sylect/basic/ClassSyntax
     // Base class is added with " <: ClassName".
     <: Object
     // Interfaces are listed after a colon (no commas needed).
@@ -46,6 +46,7 @@ testMethod(
     // Parameters can be annotated.
     a:int [Deprecated]
     // Parameters are not separated by comma.
+    // Supported primitive types are int, long, float and double.
     b:int
 ):int [
     // Methods themselves can be annotated. If there are lots of annotations,
@@ -54,22 +55,19 @@ testMethod(
 ] {
     // You can call methods as follows. If you haven't imported a class,
     // you can refer to it with a fully-qualified identifier.
-    java.lang.System->out->println("Hello, World!")
+    java/lang/System.out.println("Hello, World!")
 
-    // Variable scope is the whole method. Declaration always requires type.
-    // Supported primitive types are int, long, float and double.
-    var var1:int unused:double
-
-    // Types like bool, byte, char, short and all arrays have only black-box
-    // support which means that you can pass them, but can't directly operate on.
-    var compat:bool[]!
+    // Variable scope is the whole method. Variable type is inferred from expression.
+    // It is impossible to define an uninitialized variable.
+    var var1 = 0
+    var unused = 0.0
 
     // You can assign variables and fields on current object/class.
     f1 = 1
     var1 = a - f1
 
     // Booleans are represented with integers 0 and 1.
-    var e:int = (10 > 5) + (10L < 5L)
+    var e = (10 > 5) + (10L < 5L)
 
     // It's possible to cast types by prepending [type] before value/expression.
     if -4.5F > [float]-8 {
@@ -86,8 +84,8 @@ testMethod(
 
     // Language only supports while loop with (optional) "each" block
     // which is always executed at the end of the iteration.
-    var sum:int = 0
-    var i:int = 0 while i < 8 {
+    var sum = 0
+    var i = 0 while i < 8 {
         if (i == 2) {
             continue
         }
@@ -97,8 +95,8 @@ testMethod(
     }
 
     // Objects are created by calling class name as if it was a method.
-    var str:String = String("he")->concat("llo")
-    e = e + str->length()
+    var str = String("he").concat("llo")
+    e = e + str.length()
 
     // Return statement supports expressions.
     return var1 + 2 * (var1 - 1) + e + sum
@@ -117,7 +115,11 @@ abstractMethod():void
 // Fields and methods can be static.
 static f2:long
 static staticTestMethod():PrintStream {
-    return java.lang.System->err
+    return java/lang/System.err
 }
+
+// Types like bool, byte, char, short and all arrays have only black-box
+// support which means that you can pass them, but can't directly operate on.
+static main(args:String[]!):void { }
 
 // Continue with InterfaceSyntax.sy

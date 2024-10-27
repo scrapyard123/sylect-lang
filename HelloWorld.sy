@@ -1,10 +1,10 @@
 import {
-    java.lang.String
-    java.lang.System
+    java/lang/String
+    java/lang/System
 }
 
 class HelloWorld
 
 static main(args:String[]!):void {
-    System->out->println("Hello, World!")
+    System.out.println("Hello, World!")
 }

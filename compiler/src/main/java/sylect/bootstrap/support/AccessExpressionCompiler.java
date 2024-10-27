@@ -45,7 +45,7 @@ public class AccessExpressionCompiler {
             return accessMeta.typeMeta();
         } else {
             mv.visitLdcInsn(Type.getType(accessMeta.classMeta().asTypeMeta().asDescriptor()));
-            return new TypeMeta(TypeMeta.Kind.CLASS, false, "java.lang.Class");
+            return new TypeMeta(TypeMeta.Kind.CLASS, false, "java/lang/Class");
         }
     }
 
@@ -86,7 +86,7 @@ public class AccessExpressionCompiler {
             return new AccessMeta(classMeta, null);
         }
 
-        var owner = ClassMeta.javaClassFromClassName(scopeManager.getClassMeta().name());
+        var owner = scopeManager.getClassMeta().name();
         if (field.isStatic()) {
             mv.visitFieldInsn(Opcodes.GETSTATIC, owner, identifier, field.asDescriptor());
         } else {
@@ -110,7 +110,7 @@ public class AccessExpressionCompiler {
                         "field is not static: " + identifier + " in " + accessMeta.classMeta().name());
             }
 
-            var owner = ClassMeta.javaClassFromClassName(accessMeta.classMeta().name());
+            var owner = accessMeta.classMeta().name();
             mv.visitFieldInsn(Opcodes.GETSTATIC, owner, identifier, field.asDescriptor());
             return new AccessMeta(null, field.type());
         }
@@ -127,7 +127,7 @@ public class AccessExpressionCompiler {
                 throw new CompilationException("unknown field: " + identifier + " in " + classMeta);
             }
 
-            var owner = ClassMeta.javaClassFromClassName(classMeta.name());
+            var owner = classMeta.name();
             if (field.isStatic()) {
                 mv.visitInsn(Opcodes.POP);
                 mv.visitFieldInsn(Opcodes.GETSTATIC, owner, identifier, field.asDescriptor());
@@ -164,7 +164,7 @@ public class AccessExpressionCompiler {
         }
 
         // Determine the exact call instruction
-        var owner = ClassMeta.javaClassFromClassName(classMeta.name());
+        var owner = classMeta.name();
         if (method.isStatic()) {
             mv.visitMethodInsn(
                     Opcodes.INVOKESTATIC, owner, method.name(), method.asDescriptor(), classMeta.iface());
@@ -195,7 +195,7 @@ public class AccessExpressionCompiler {
             // If identifier is a valid class name - we are constructing an object
             try {
                 var classMeta = scopeManager.resolveClass(scopeManager.resolveImport(identifier));
-                mv.visitTypeInsn(Opcodes.NEW, ClassMeta.javaClassFromClassName(classMeta.name()));
+                mv.visitTypeInsn(Opcodes.NEW, classMeta.name());
                 mv.visitInsn(Opcodes.DUP); // one for constructor call and one for next chain terms
                 return new Pair<>(classMeta, true);
             } catch (CompilationException e) {

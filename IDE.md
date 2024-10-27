@@ -16,7 +16,6 @@ Currently only basic syntax highlighting is supported in IntelliJ IDEA.
 First tab:
 
 ```
-->
 :
 <:
 break

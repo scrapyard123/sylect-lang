@@ -57,7 +57,7 @@ public class ScopeManager {
     public ClassMeta resolveClass(String identifier) {
         return classMetaMap.computeIfAbsent(identifier, id -> {
             try {
-                return ClassMeta.fromJavaClass(classLoader.loadClass(id));
+                return ClassMeta.fromJavaClass(classLoader.loadClass(ClassMeta.sylectClassNameToJavaClassName(id)));
             } catch (ClassNotFoundException e) {
                 throw new CompilationException("unknown class: " + id);
             }

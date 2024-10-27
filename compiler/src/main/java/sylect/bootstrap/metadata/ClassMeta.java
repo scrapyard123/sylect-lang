@@ -22,12 +22,17 @@ import java.util.stream.Stream;
 public record ClassMeta(String name, boolean iface,
                         String baseClassName, Set<String> interfaces,
                         Set<FieldMeta> fields, Set<MethodMeta> methods) {
-    public static String javaClassFromClassName(String className) {
+
+    public static String javaClassNameToSylectClassName(String className) {
         return className.replace('.', '/');
     }
 
+    public static String sylectClassNameToJavaClassName(String className) {
+        return className.replace('/', '.');
+    }
+
     public static String shortClassName(String identifier) {
-        var parts = identifier.split("\\.");
+        var parts = identifier.split("/");
         return parts[parts.length - 1];
     }
 
@@ -42,7 +47,7 @@ public record ClassMeta(String name, boolean iface,
                 .map(BaseClassContext::IDENTIFIER)
                 .map(TerminalNode::getText)
                 .map(scopeManager::resolveImport)
-                .orElse("java.lang.Object");
+                .orElse("java/lang/Object");
         var interfaces = Optional.of(ctx.classDefinition())
                 .map(ClassDefinitionContext::interfaceClass)
                 .map(interfaceList -> interfaceList.stream()
@@ -74,9 +79,10 @@ public record ClassMeta(String name, boolean iface,
     }
 
     public static ClassMeta fromJavaClass(Class<?> clazz) {
-        var className = clazz.getName();
+        var className = ClassMeta.javaClassNameToSylectClassName(clazz.getName());
         var baseClassName = Optional.ofNullable(clazz.getSuperclass())
                 .map(Class::getName)
+                .map(ClassMeta::javaClassNameToSylectClassName)
                 .orElse(null);
         var interfaces = Arrays.stream(clazz.getInterfaces())
                 .map(Class::getName)

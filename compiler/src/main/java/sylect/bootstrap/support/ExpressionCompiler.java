@@ -144,9 +144,7 @@ public class ExpressionCompiler {
                     case DOUBLE -> compileTypeConversion(
                             targetType, Opcodes.D2I, Opcodes.D2L, Opcodes.D2F, Opcodes.NOP);
 
-                    case CLASS -> mv.visitTypeInsn(
-                            Opcodes.CHECKCAST,
-                            ClassMeta.javaClassFromClassName(targetType.className()));
+                    case CLASS -> mv.visitTypeInsn(Opcodes.CHECKCAST, targetType.className());
 
                     default -> throw new CompilationException(
                             "could not convert " + operandType + " to " + targetType);

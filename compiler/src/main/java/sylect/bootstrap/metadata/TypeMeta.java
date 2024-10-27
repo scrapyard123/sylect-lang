@@ -83,7 +83,7 @@ public record TypeMeta(Kind kind, boolean isArray, String className) {
             return new TypeMeta(Kind.SHORT, isArray, null);
         }
 
-        return new TypeMeta(Kind.CLASS, isArray, clazz.getCanonicalName());
+        return new TypeMeta(Kind.CLASS, isArray, ClassMeta.javaClassNameToSylectClassName(clazz.getCanonicalName()));
     }
 
     public TypeMeta arrayElementType() {
@@ -110,7 +110,7 @@ public record TypeMeta(Kind kind, boolean isArray, String className) {
             case LONG -> "J";
             case FLOAT -> "F";
             case DOUBLE -> "D";
-            case CLASS -> "L" + ClassMeta.javaClassFromClassName(className) + ";";
+            case CLASS -> "L" + className + ";";
 
             case BOOLEAN -> "Z";
             case BYTE -> "B";

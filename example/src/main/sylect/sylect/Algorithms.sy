@@ -1,19 +1,20 @@
 // SPDX-License-Identifier: MIT
 
 import {
-    java.lang.Object
+    java/lang/Object
 
-    java.util.List
-    java.util.Comparator
+    java/util/List
+    java/util/Comparator
 }
 
-class sylect.Algorithms
+class sylect/Algorithms
 
 constructor():void { }
 
 // Iterative Fibonacci sequence calculation
 fibIter(n:long):long {
-    var a:long = 0L b:long = 1L
+    var a = 0L
+    var b = 1L
 
     if n < 0L {
         return -1L
@@ -22,8 +23,8 @@ fibIter(n:long):long {
         return a
     }
 
-    var sum:long
-    var i:long = 0L while i < n - 1L {
+    var sum = 0L
+    var i = 0L while i < n - 1L {
         sum = a + b
         a = b
         b = sum
@@ -36,7 +37,7 @@ fibIter(n:long):long {
 
 // Recursive Fibonacci sequence calculation
 fibRec1(a:long b:long n:long):long {
-    java.lang.System->out->println(b)
+    java/lang/System.out.println(b)
     if (n == 0L) {
         return b
     } else {
@@ -56,12 +57,12 @@ fibRec(n:long):long {
 
 // Naive implementation of bubble sort
 bubbleSort(list:List comp:Comparator):void {
-    var i:int = 0 while i < list->size() {
-        var j:int = 0 while j < list->size() - 1 {
-            if comp->compare(list->get(j) list->get(j+1)) < 0 {
-                var tmp:Object = list->get(j)
-                list->set(j list->get(j+1))
-                list->set(j+1 tmp)
+    var i = 0 while i < list.size() {
+        var j = 0 while j < list.size() - 1 {
+            if comp.compare(list.get(j) list.get(j+1)) < 0 {
+                var tmp = list.get(j)
+                list.set(j list.get(j+1))
+                list.set(j+1 tmp)
             }
         } each {
             j = j + 1

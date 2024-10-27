@@ -42,7 +42,7 @@ public final class ClassUtils {
         var literal = literalNode.getText();
         if (literal.startsWith("\"") && literal.endsWith("\"")) {
             kind = TypeMeta.Kind.CLASS;
-            className = "java.lang.String";
+            className = "java/lang/String";
             literal = literal.substring(1, literal.length() - 1);
         } else if (literal.endsWith("F")) {
             kind = TypeMeta.Kind.FLOAT;
