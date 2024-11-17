@@ -68,9 +68,9 @@ Place your sources in `src/{main,test}/sylect` and add the following to `pom.xml
 | **»** Annotation Definition                             | :x:                | :x:        |
 | **»** Enum Definition                                   | :x:                | :x:        |
 | **»** Inheritance & Interface Implementation            | :heavy_check_mark: | :notebook: |
-| **Access Modifiers**                                    | :construction:     | :notebook: |
-| **»** Protected/Private Fields/Methods                  | :notebook:         | :notebook: |
-| **»** Package-Private Fields/Methods                    | :x:                | :x:        |
+| **Access Modifiers**                                    | :heavy_check_mark: | :notebook: |
+| **»** Protected Fields/Public Methods                   | :heavy_check_mark: | :notebook: |
+| **»** Package-Private/Private/Protected Fields/Methods  | :x:                | :x:        |
 | **»** Static Fields/Methods                             | :heavy_check_mark: | :notebook: |
 | **»** Final Fields (+ for Interfaces)                   | :x:                | :x:        |
 | **»** Final Methods/Classes/etc                         | :x:                | :x:        |

@@ -1,11 +1,18 @@
 // SPDX-License-Identifier: MIT
 
-// Interfaces are defined as follows.
-interface sylect/basic/InterfaceSyntax
+import {
+    java/util/List
+}
+
+// Interfaces are defined as follows, interfaces are always public.
+interface sylect/basic/InterfaceSyntax : List
 
 // Interfaces may contain both abstract and non-abstract methods.
 testMethod(a:int):int
 commonMethod():int { return 5 }
 
-// Fields are not allowed in interfaces.
+// Static methods are not allowed in interfaces.
+// static staticMethod():void { return } -> sylect.bootstrap.CompilationException
+
+// Both static and usual fields are not allowed in interfaces.
 // field: int -> sylect.bootstrap.CompilationException

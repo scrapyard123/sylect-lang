@@ -39,7 +39,7 @@ public record ClassMeta(String name, boolean iface,
     public static ClassMeta fromSylectTree(ScopeManager scopeManager, ProgramContext ctx) {
         scopeManager.enterSource(ctx);
 
-        var iface = ctx.getText().startsWith("interface");
+        var iface = ctx.classDefinition().getText().startsWith("interface");
 
         var className = ctx.classDefinition().IDENTIFIER().getText();
         var baseClassName = Optional.of(ctx.classDefinition())
@@ -48,6 +48,11 @@ public record ClassMeta(String name, boolean iface,
                 .map(TerminalNode::getText)
                 .map(scopeManager::resolveImport)
                 .orElse("java/lang/Object");
+
+        if (iface && ctx.classDefinition().baseClass() != null) {
+            throw new CompilationException("interface classes cannot extend other classes");
+        }
+
         var interfaces = Optional.of(ctx.classDefinition())
                 .map(ClassDefinitionContext::interfaceClass)
                 .map(interfaceList -> interfaceList.stream()
@@ -71,6 +76,10 @@ public record ClassMeta(String name, boolean iface,
                         .map(methodDefinition -> MethodMeta.fromContext(scopeManager, methodDefinition))
                         .collect(Collectors.toSet()))
                 .orElse(Set.of());
+
+        if (iface && methods.stream().anyMatch(MethodMeta::isStatic)) {
+            throw new CompilationException("interface classes cannot contain static methods");
+        }
 
         return new ClassMeta(
                 className, iface,

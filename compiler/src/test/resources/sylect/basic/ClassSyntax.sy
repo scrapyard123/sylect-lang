@@ -16,7 +16,7 @@ import {
     java/io/PrintStream
 }
 
-// Each file contains exactly one class definition.
+// Each file contains exactly one class definition, classes are always public.
 class sylect/basic/ClassSyntax
     // Base class is added with " <: ClassName".
     <: Object
@@ -41,7 +41,8 @@ setF1(upd:int):void { f1 = upd }
 // Lack of constructor means that object cannot be instantiated.
 constructor():void { }
 
-// Methods are defined as follows.
+// Methods are always public and defined as follows.
+// If you want to hide some implementation-specific methods, cast object to interface.
 testMethod(
     // Parameters can be annotated.
     a:int [Deprecated]
