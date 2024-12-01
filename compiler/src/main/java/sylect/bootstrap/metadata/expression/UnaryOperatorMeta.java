@@ -2,13 +2,13 @@
 
 package sylect.bootstrap.metadata.expression;
 
-import sylect.SylectParser.UnaryOpContext;
 import sylect.CompilationException;
+import sylect.SylectParser.UnaryOperatorContext;
 
 public enum UnaryOperatorMeta {
     MINUS, NOT, TYPE_CONVERSION;
 
-    public static UnaryOperatorMeta fromContext(UnaryOpContext ctx) {
+    public static UnaryOperatorMeta fromContext(UnaryOperatorContext ctx) {
         if (ctx.type() != null) {
             return TYPE_CONVERSION;
         }

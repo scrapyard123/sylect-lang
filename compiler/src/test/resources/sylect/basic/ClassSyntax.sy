@@ -14,6 +14,8 @@ import {
     java/lang/SuppressWarnings
 
     java/io/PrintStream
+
+    java/util/ArrayList
 }
 
 // Each file contains exactly one class definition, classes are always public.
@@ -77,9 +79,8 @@ testMethod(
         e = e - 1
     }
 
-    // You can use bitwise operators in conditional statements, but they are NOT short-circuiting.
-    // In place of short-circuiting, consider using usual conditional statements.
-    if !(2 > 3) & (4 < 5) {
+    // You can use boolean operators in expressions, short-circuiting is supported.
+    if !(2 > 3) && (4 < 5) || scaryMethod() {
         e = e + 1
     }
 
@@ -105,6 +106,9 @@ testMethod(
     // If method is expected to return something and execution
     // falls through the end, an exception will be thrown at runtime.
 }
+
+// Will always fail with exception
+scaryMethod():int { ArrayList().get(-1) return 0 }
 
 // Methods without code block are abstract.
 abstractMethod():void

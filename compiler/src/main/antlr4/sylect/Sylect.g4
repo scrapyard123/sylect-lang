@@ -2,6 +2,7 @@
 
 grammar Sylect;
 
+// GENERAL PROGRAM STRUCTURE
 program: importSection? classDefinition (fieldDefinition | methodDefinition)*;
 
 importSection: 'import' '{' IDENTIFIER+ '}';
@@ -15,8 +16,6 @@ interfaceClass: IDENTIFIER;
 
 fieldDefinition: 'static'? IDENTIFIER ':' type annotationBlock?;
 
-codeBlock: '{' statement* '}';
-
 methodDefinition:
     'static'? IDENTIFIER '(' parameter* ')' ':' type
     annotationBlock?
@@ -25,7 +24,10 @@ parameter: IDENTIFIER ':' type annotationBlock?;
 
 annotationBlock: '[' annotationDefinition+ ']';
 annotationDefinition: type ('[' annotationParameter+ ']')?;
-annotationParameter: IDENTIFIER '{' (LITERAL+ | IDENTIFIER+ | annotationDefinition+) '}';
+annotationParameter: IDENTIFIER '{' (LITERAL+ | STRING_LITERAL+ | IDENTIFIER+ | annotationDefinition+) '}';
+
+// CODE BLOCKS AND STATEMENTS
+codeBlock: '{' statement* '}';
 
 statement:
     variableDefinitionStatement | assignmentStatement | expressionStatement |
@@ -45,13 +47,14 @@ breakContinueStatement: 'break' | 'continue';
 
 returnStatement: 'return' expression?;
 
-expression: term (operator term)*;
-term: unaryOp* (LITERAL | accessExpression | '(' expression ')');
+// EXPRESSIONS
+expression: andExpression ('||' andExpression)*;
+andExpression: mathExpression ('&&' mathExpression)*;
 
-accessExpression: accessTerm ('.' accessTerm)*;
-accessTerm: IDENTIFIER ('(' expression* ')')?;
+mathExpression: mathTerm (operator mathTerm)*;
+mathTerm: unaryOperator* (LITERAL | objectExpression | '(' expression ')');
 
-unaryOp: '-' | '!' | '[' type ']';
+unaryOperator: '-' | '!' | '[' type ']';
 operator:
     '*' | '/' | '%' |
     '+' | '-' |
@@ -62,10 +65,16 @@ operator:
     '^' |
     '|';
 
+objectExpression: objectTerm ('.' objectTerm)*;
+objectTerm: IDENTIFIER ('(' expression* ')')? | STRING_LITERAL /* Only first term */;
+
+// TYPES
 type: ('void' | 'int' | 'long' | 'float' | 'double' |
     'bool' | 'byte' | 'char' | 'short' | IDENTIFIER) '[]'? '!'?;
 
-LITERAL: [0-9.]+ ('L' | 'F')? | '"' .*? '"';
+// LEXER DEFINITIONS
+LITERAL: [0-9.]+ ('L' | 'F')?;
+STRING_LITERAL: '"' .*? '"';
 IDENTIFIER: [a-zA-Z] ([a-zA-Z0-9_$/])*;
 
 LINE_COMMENT: '//' ~[\r\n]* -> skip;

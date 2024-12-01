@@ -12,7 +12,6 @@ Sylect is a simple JVM language tailored for developing scalable applications ba
 4. Read `compiler/src/test/resources/sylect/ClassSyntax.sy` to familiarize yourself with language syntax.
 5. Compile an example with `java -jar compiler/target/compiler-0.1.jar HelloWorld.sy` and run `java HelloWorld`.
 6. Take a look at `example` for various examples.
-7. Take a look at https://github.com/scrapyard123/eclinic for Spring Boot application example with Spring Data JPA.
 
 ### Maven Plugin
 You can apply Maven Plugin to write your projects in Sylect.
@@ -108,7 +107,7 @@ Place your sources in `src/{main,test}/sylect` and add the following to `pom.xml
 | **»** Mathematical Operators                            | :heavy_check_mark: | :notebook: |
 | **»** Comparison Operators                              | :heavy_check_mark: | :notebook: |
 | **»** Proper NaN Treatment During Comparison            | :question:         | :question: |
-| **»** Boolean Operators                                 | :x:                | :x:        |
+| **»** Boolean Operators                                 | :heavy_check_mark: | :notebook: |
 | **»** Array Operators                                   | :x:                | :x:        |
 | **»** Method Calls                                      | :heavy_check_mark: | :notebook: |
 | **»** Super/Constructor Calls                           | :notebook:         | :notebook: |

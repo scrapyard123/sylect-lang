@@ -2,14 +2,14 @@
 
 package sylect.bootstrap.support;
 
-import sylect.SylectParser;
+import org.objectweb.asm.AnnotationVisitor;
+import org.objectweb.asm.Type;
 import sylect.CompilationException;
+import sylect.SylectParser;
 import sylect.bootstrap.ScopeManager;
 import sylect.bootstrap.metadata.MethodMeta;
 import sylect.bootstrap.metadata.TypeMeta;
 import sylect.bootstrap.util.ClassUtils;
-import org.objectweb.asm.AnnotationVisitor;
-import org.objectweb.asm.Type;
 
 import java.util.function.Function;
 
@@ -78,6 +78,9 @@ public class AnnotationCompiler {
                 throw new CompilationException("bad literal type " + literalType + ", expected: " + paramType);
             }
         }
+        if (!param.STRING_LITERAL().isEmpty()) {
+            ClassUtils.visitStringLiteral(param.STRING_LITERAL(0), value -> visitor.visit(name, value));
+        }
         if (param.IDENTIFIER().size() > 1) {
             visitor.visit(name, Type.getType(
                     scopeManager.resolveClass(scopeManager.resolveImport(param.IDENTIFIER(1).getText()))
@@ -107,6 +110,10 @@ public class AnnotationCompiler {
                     throw new CompilationException("bad literal type " + literalType + ", expected: " + paramType);
                 }
             });
+        }
+        if (!param.STRING_LITERAL().isEmpty()) {
+            param.STRING_LITERAL().forEach(
+                    ctx -> ClassUtils.visitStringLiteral(ctx, value -> arrayVisitor.visit(null, value)));
         }
         if (param.IDENTIFIER().size() > 1) {
             param.IDENTIFIER().forEach(ctx ->

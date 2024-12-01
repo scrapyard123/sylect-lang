@@ -6,13 +6,13 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import sylect.CompilationException;
-import sylect.SylectParser.AccessExpressionContext;
-import sylect.SylectParser.AccessTermContext;
 import sylect.SylectParser.ExpressionContext;
+import sylect.SylectParser.ObjectExpressionContext;
+import sylect.SylectParser.ObjectTermContext;
 import sylect.bootstrap.ScopeManager;
 import sylect.bootstrap.metadata.ClassMeta;
 import sylect.bootstrap.metadata.TypeMeta;
-import sylect.bootstrap.metadata.expression.AccessMeta;
+import sylect.bootstrap.metadata.expression.ObjectMeta;
 import sylect.bootstrap.util.ClassUtils;
 import sylect.util.Pair;
 
@@ -20,51 +20,58 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Class that compiles "access expressions" - chain of field access and method call operations.
- * {@link AccessMeta} helps to track current object that we operate on. If it's a class, we don't have
+ * Class that compiles "object expressions" - chain of field access and method call operations.
+ * {@link ObjectMeta} helps to track current object that we operate on. If it's a class, we don't have
  * anything on stack, if it's an object/value - it's stored at the top.
  */
-public class AccessExpressionCompiler {
+public class ObjectExpressionCompiler {
     private final ScopeManager scopeManager;
     private final MethodVisitor mv;
 
-    public AccessExpressionCompiler(ScopeManager scopeManager, MethodVisitor mv) {
+    public ObjectExpressionCompiler(ScopeManager scopeManager, MethodVisitor mv) {
         this.scopeManager = Objects.requireNonNull(scopeManager);
         this.mv = Objects.requireNonNull(mv);
     }
 
-    public TypeMeta compile(AccessExpressionContext ctx) {
+    public TypeMeta compile(ObjectExpressionContext ctx) {
         // Follow chain of field access operations/method calls
-        var accessMeta = (AccessMeta) null;
-        for (AccessTermContext accessTermCtx : ctx.accessTerm()) {
-            accessMeta = compileAccessTerm(accessMeta, accessTermCtx);
+        var objectMeta = (ObjectMeta) null;
+        for (var objectTermCtx : ctx.objectTerm()) {
+            objectMeta = compileObjectTerm(objectMeta, objectTermCtx);
         }
 
         // If we end up with object/value - return it, otherwise create and return Class<?> object
-        if (accessMeta.isTypeMeta()) {
-            return accessMeta.typeMeta();
+        if (objectMeta.isTypeMeta()) {
+            return objectMeta.typeMeta();
         } else {
-            mv.visitLdcInsn(Type.getType(accessMeta.classMeta().asTypeMeta().asDescriptor()));
+            mv.visitLdcInsn(Type.getType(objectMeta.classMeta().asTypeMeta().asDescriptor()));
             return new TypeMeta(TypeMeta.Kind.CLASS, false, "java/lang/Class");
         }
     }
 
-    private AccessMeta compileAccessTerm(AccessMeta accessMeta, AccessTermContext ctx) {
+    private ObjectMeta compileObjectTerm(ObjectMeta objectMeta, ObjectTermContext ctx) {
+        if (ctx.STRING_LITERAL() != null) {
+            if (objectMeta != null) {
+                throw new CompilationException("string literal can only be a first term");
+            }
+            return new ObjectMeta(null, ClassUtils.visitStringLiteral(ctx.STRING_LITERAL(), mv::visitLdcInsn));
+        }
+
         var identifier = ctx.IDENTIFIER().getText();
 
         if (ctx.getText().contains("(")) {
-            return compileMethodCall(accessMeta, identifier, ctx.expression());
+            return compileMethodCall(objectMeta, identifier, ctx.expression());
         }
 
         // If we immediately start with method call/field access - we are working within current class
-        if (accessMeta == null) {
+        if (objectMeta == null) {
             return compileLocalAccess(identifier);
         } else {
-            return compileNonLocalAccess(accessMeta, identifier);
+            return compileNonLocalAccess(objectMeta, identifier);
         }
     }
 
-    private AccessMeta compileLocalAccess(String identifier) {
+    private ObjectMeta compileLocalAccess(String identifier) {
         // Try to find corresponding local variable
         var local = scopeManager.getLocal(identifier);
         if (local != null) {
@@ -76,14 +83,14 @@ public class AccessExpressionCompiler {
                 case CLASS -> mv.visitIntInsn(Opcodes.ALOAD, local.offset());
                 default -> throw new CompilationException("unsupported variable type: " + local.type());
             }
-            return new AccessMeta(null, local.type());
+            return new ObjectMeta(null, local.type());
         }
 
         // Try to find corresponding local field
         var field = scopeManager.getField(identifier);
         if (field == null) {
             var classMeta = scopeManager.resolveClass(scopeManager.resolveImport(identifier));
-            return new AccessMeta(classMeta, null);
+            return new ObjectMeta(classMeta, null);
         }
 
         var owner = scopeManager.getClassMeta().name();
@@ -93,35 +100,35 @@ public class AccessExpressionCompiler {
             mv.visitVarInsn(Opcodes.ALOAD, 0);
             mv.visitFieldInsn(Opcodes.GETFIELD, owner, identifier, field.asDescriptor());
         }
-        return new AccessMeta(null, field.type());
+        return new ObjectMeta(null, field.type());
     }
 
-    private AccessMeta compileNonLocalAccess(AccessMeta accessMeta, String identifier) {
+    private ObjectMeta compileNonLocalAccess(ObjectMeta objectMeta, String identifier) {
         // If previous term produced a class - we are trying to access a static field
-        if (accessMeta.isClassMeta()) {
-            var field = scopeManager.getField(accessMeta.classMeta(), identifier);
+        if (objectMeta.isClassMeta()) {
+            var field = scopeManager.getField(objectMeta.classMeta(), identifier);
             if (field == null) {
                 throw new CompilationException(
-                        "unknown field: " + identifier + " in " + accessMeta.classMeta().name());
+                        "unknown field: " + identifier + " in " + objectMeta.classMeta().name());
             }
 
             if (!field.isStatic()) {
                 throw new CompilationException(
-                        "field is not static: " + identifier + " in " + accessMeta.classMeta().name());
+                        "field is not static: " + identifier + " in " + objectMeta.classMeta().name());
             }
 
-            var owner = accessMeta.classMeta().name();
+            var owner = objectMeta.classMeta().name();
             mv.visitFieldInsn(Opcodes.GETSTATIC, owner, identifier, field.asDescriptor());
-            return new AccessMeta(null, field.type());
+            return new ObjectMeta(null, field.type());
         }
 
         // If previous term produced an object - we are trying to access instance field
-        if (accessMeta.isTypeMeta()) {
-            if (accessMeta.typeMeta().kind() != TypeMeta.Kind.CLASS) {
+        if (objectMeta.isTypeMeta()) {
+            if (objectMeta.typeMeta().kind() != TypeMeta.Kind.CLASS) {
                 throw new CompilationException("accessing field on primitive type");
             }
 
-            var classMeta = scopeManager.resolveClass(accessMeta.typeMeta().className());
+            var classMeta = scopeManager.resolveClass(objectMeta.typeMeta().className());
             var field = scopeManager.getField(classMeta, identifier);
             if (field == null) {
                 throw new CompilationException("unknown field: " + identifier + " in " + classMeta);
@@ -135,16 +142,16 @@ public class AccessExpressionCompiler {
                 mv.visitFieldInsn(Opcodes.GETFIELD, owner, identifier, field.asDescriptor());
             }
 
-            return new AccessMeta(null, field.type());
+            return new ObjectMeta(null, field.type());
         }
 
         // Otherwise something is really wrong...
-        throw new CompilationException("unsupported access type: " + accessMeta);
+        throw new CompilationException("unsupported access type: " + objectMeta);
     }
 
-    private AccessMeta compileMethodCall(AccessMeta accessMeta, String identifier, List<ExpressionContext> arguments) {
+    private ObjectMeta compileMethodCall(ObjectMeta objectMeta, String identifier, List<ExpressionContext> arguments) {
         // Prepare target for method class (new object/this object/simply class meta)
-        var pair = prepareTarget(accessMeta, identifier);
+        var pair = prepareTarget(objectMeta, identifier);
         var classMeta = pair.left();
         var newObject = pair.right();
 
@@ -157,7 +164,7 @@ public class AccessExpressionCompiler {
         }
 
         // Target method must be static if called from static method or when called on class
-        if ((accessMeta == null && scopeManager.isStaticMethod()) || (accessMeta != null && accessMeta.isClassMeta())) {
+        if ((objectMeta == null && scopeManager.isStaticMethod()) || (objectMeta != null && objectMeta.isClassMeta())) {
             if (!method.isStatic()) {
                 throw new CompilationException("method is not static: " + method.name() + " in " + classMeta.name());
             }
@@ -179,19 +186,19 @@ public class AccessExpressionCompiler {
         }
 
         // Remove target object if it was not required and is present at the stack
-        if (method.isStatic() && (accessMeta == null || accessMeta.isTypeMeta())) {
+        if (method.isStatic() && (objectMeta == null || objectMeta.isTypeMeta())) {
             if (method.returnType().kind() != TypeMeta.Kind.VOID) {
                 mv.visitInsn(Opcodes.SWAP);
             }
             mv.visitInsn(Opcodes.POP);
         }
 
-        return new AccessMeta(null, newObject ? classMeta.asTypeMeta() : method.returnType());
+        return new ObjectMeta(null, newObject ? classMeta.asTypeMeta() : method.returnType());
     }
 
-    private Pair<ClassMeta, Boolean> prepareTarget(AccessMeta accessMeta, String identifier) {
+    private Pair<ClassMeta, Boolean> prepareTarget(ObjectMeta objectMeta, String identifier) {
         // If we immediately start with method call - we are working within current class
-        if (accessMeta == null) {
+        if (objectMeta == null) {
             // If identifier is a valid class name - we are constructing an object
             try {
                 var classMeta = scopeManager.resolveClass(scopeManager.resolveImport(identifier));
@@ -209,16 +216,16 @@ public class AccessExpressionCompiler {
             return new Pair<>(scopeManager.getClassMeta(), false);
         } else {
             // If previous term is a class - it's going to be static method call
-            if (accessMeta.isClassMeta()) {
-                return new Pair<>(accessMeta.classMeta(), false);
+            if (objectMeta.isClassMeta()) {
+                return new Pair<>(objectMeta.classMeta(), false);
             }
 
-            if (accessMeta.isTypeMeta()) {
-                if (accessMeta.typeMeta().kind() != TypeMeta.Kind.CLASS) {
+            if (objectMeta.isTypeMeta()) {
+                if (objectMeta.typeMeta().kind() != TypeMeta.Kind.CLASS) {
                     throw new CompilationException("calling method on primitive type");
                 }
 
-                return new Pair<>(scopeManager.resolveClass(accessMeta.typeMeta().className()), false);
+                return new Pair<>(scopeManager.resolveClass(objectMeta.typeMeta().className()), false);
             }
 
             throw new CompilationException("failed to determine target class for method call");
