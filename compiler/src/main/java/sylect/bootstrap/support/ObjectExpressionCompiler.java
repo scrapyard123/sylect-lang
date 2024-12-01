@@ -10,11 +10,10 @@ import sylect.SylectParser.ExpressionContext;
 import sylect.SylectParser.ObjectExpressionContext;
 import sylect.SylectParser.ObjectTermContext;
 import sylect.bootstrap.ScopeManager;
-import sylect.bootstrap.metadata.ClassMeta;
 import sylect.bootstrap.metadata.TypeMeta;
+import sylect.bootstrap.metadata.expression.CallTargetMeta;
 import sylect.bootstrap.metadata.expression.ObjectMeta;
 import sylect.bootstrap.util.ClassUtils;
-import sylect.util.Pair;
 
 import java.util.List;
 import java.util.Objects;
@@ -60,7 +59,7 @@ public class ObjectExpressionCompiler {
         var identifier = ctx.IDENTIFIER().getText();
 
         if (ctx.getText().contains("(")) {
-            return compileMethodCall(objectMeta, identifier, ctx.expression());
+            return compileMethodCall(objectMeta, ctx.getText().startsWith("super"), identifier, ctx.expression());
         }
 
         // If we immediately start with method call/field access - we are working within current class
@@ -149,54 +148,65 @@ public class ObjectExpressionCompiler {
         throw new CompilationException("unsupported access type: " + objectMeta);
     }
 
-    private ObjectMeta compileMethodCall(ObjectMeta objectMeta, String identifier, List<ExpressionContext> arguments) {
+    private ObjectMeta compileMethodCall(
+            ObjectMeta objectMeta,
+            boolean isSuper, String identifier, List<ExpressionContext> arguments) {
+
         // Prepare target for method class (new object/this object/simply class meta)
-        var pair = prepareTarget(objectMeta, identifier);
-        var classMeta = pair.left();
-        var newObject = pair.right();
+        var target = prepareTarget(objectMeta, isSuper, identifier);
 
         // Compile arguments to determine parameter types
         var parameterTypes = compileArguments(arguments);
 
-        var method = scopeManager.getMethod(classMeta, newObject ? "<init>" : identifier, parameterTypes);
+        var method = scopeManager.getMethod(
+                target.classMeta(),
+                target.isConstructor() ? "<init>" : identifier,
+                parameterTypes);
         if (method == null) {
-            throw new CompilationException("unknown method: " + identifier + " in " + classMeta.name());
+            throw new CompilationException("unknown method: " + identifier + " in " + target.classMeta().name());
         }
 
         // Target method must be static if called from static method or when called on class
         if ((objectMeta == null && scopeManager.isStaticMethod()) || (objectMeta != null && objectMeta.isClassMeta())) {
             if (!method.isStatic()) {
-                throw new CompilationException("method is not static: " + method.name() + " in " + classMeta.name());
+                throw new CompilationException(
+                        "method is not static: " + method.name() + " in " + target.classMeta().name());
             }
         }
 
         // Determine the exact call instruction
-        var owner = classMeta.name();
+        var owner = target.classMeta().name();
         if (method.isStatic()) {
             mv.visitMethodInsn(
-                    Opcodes.INVOKESTATIC, owner, method.name(), method.asDescriptor(), classMeta.iface());
+                    Opcodes.INVOKESTATIC, owner, method.name(), method.asDescriptor(), target.classMeta().iface());
         } else {
-            if (newObject) {
+            if (target.isConstructor() || target.isSpecial()) {
                 mv.visitMethodInsn(Opcodes.INVOKESPECIAL, owner, method.name(), method.asDescriptor(), false);
-            } else if (classMeta.iface()) {
+            } else if (target.classMeta().iface()) {
                 mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, owner, method.name(), method.asDescriptor(), true);
             } else {
                 mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, owner, method.name(), method.asDescriptor(), false);
             }
         }
 
-        // Remove target object if it was not required and is present at the stack
-        if (method.isStatic() && (objectMeta == null || objectMeta.isTypeMeta())) {
-            if (method.returnType().kind() != TypeMeta.Kind.VOID) {
-                mv.visitInsn(Opcodes.SWAP);
+        // If we just called a static method, there are cases where we need to remove target object from stack
+        if (method.isStatic()) {
+            // First case: calling a static method from a static method within the same class
+            if ((objectMeta == null && !scopeManager.isStaticMethod()) ||
+                    // Second case: calling a static method on an object
+                    (objectMeta != null && objectMeta.isTypeMeta())) {
+                // Preserve the result on stack
+                if (method.returnType().kind() != TypeMeta.Kind.VOID) {
+                    mv.visitInsn(Opcodes.SWAP);
+                }
+                mv.visitInsn(Opcodes.POP);
             }
-            mv.visitInsn(Opcodes.POP);
         }
 
-        return new ObjectMeta(null, newObject ? classMeta.asTypeMeta() : method.returnType());
+        return new ObjectMeta(null, target.isNewObject() ? target.classMeta().asTypeMeta() : method.returnType());
     }
 
-    private Pair<ClassMeta, Boolean> prepareTarget(ObjectMeta objectMeta, String identifier) {
+    private CallTargetMeta prepareTarget(ObjectMeta objectMeta, boolean isSuper, String identifier) {
         // If we immediately start with method call - we are working within current class
         if (objectMeta == null) {
             // If identifier is a valid class name - we are constructing an object
@@ -204,28 +214,49 @@ public class ObjectExpressionCompiler {
                 var classMeta = scopeManager.resolveClass(scopeManager.resolveImport(identifier));
                 mv.visitTypeInsn(Opcodes.NEW, classMeta.name());
                 mv.visitInsn(Opcodes.DUP); // one for constructor call and one for next chain terms
-                return new Pair<>(classMeta, true);
+
+                if (isSuper) {
+                    throw new CompilationException("super is not allowed when constructing an object");
+                }
+                return new CallTargetMeta(classMeta, true, true, true);
             } catch (CompilationException e) {
                 // It's not a valid class name - proceed with compilation
             }
 
-            // Add target object (ourselves) to the stack if we are not in static class
+            // Add target object (ourselves) to the stack if we are not in static method
             if (!scopeManager.isStaticMethod()) {
                 mv.visitVarInsn(Opcodes.ALOAD, 0);
             }
-            return new Pair<>(scopeManager.getClassMeta(), false);
-        } else {
-            // If previous term is a class - it's going to be static method call
-            if (objectMeta.isClassMeta()) {
-                return new Pair<>(objectMeta.classMeta(), false);
+
+            // We can call other constructors to further construct the object
+            var isConstructor = "constructor".equals(identifier);
+
+            // When "super" keyword is present - search for target method in base class instead
+            var classMeta = scopeManager.getClassMeta();
+            if (isSuper) {
+                classMeta = scopeManager.resolveClass(classMeta.baseClassName());
             }
 
+            return new CallTargetMeta(classMeta, isConstructor, false, isConstructor || isSuper);
+        } else {
+            if (isSuper) {
+                throw new CompilationException("super is not allowed here");
+            }
+
+            // If previous term is a class - it's going to be static method call
+            if (objectMeta.isClassMeta()) {
+                return new CallTargetMeta(objectMeta.classMeta(), false, false, false);
+            }
+
+            // If previous term is a type - it's going to be a usual method call
             if (objectMeta.isTypeMeta()) {
                 if (objectMeta.typeMeta().kind() != TypeMeta.Kind.CLASS) {
                     throw new CompilationException("calling method on primitive type");
                 }
 
-                return new Pair<>(scopeManager.resolveClass(objectMeta.typeMeta().className()), false);
+                return new CallTargetMeta(
+                        scopeManager.resolveClass(objectMeta.typeMeta().className()),
+                        false, false, false);
             }
 
             throw new CompilationException("failed to determine target class for method call");

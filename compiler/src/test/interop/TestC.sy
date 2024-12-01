@@ -1,3 +1,5 @@
 class TestC <: TestB
-constructor():void { }
+constructor():void { super constructor() }
+a():int { return super a() + 1 }
+b():int { return super b() + 1 }
 c():int { return 3 }

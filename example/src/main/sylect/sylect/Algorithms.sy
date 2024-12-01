@@ -9,10 +9,8 @@ import {
 
 class sylect/Algorithms
 
-constructor():void { }
-
 // Iterative Fibonacci sequence calculation
-fibIter(n:long):long {
+static fibIter(n:long):long {
     var a = 0L
     var b = 1L
 
@@ -36,7 +34,7 @@ fibIter(n:long):long {
 }
 
 // Recursive Fibonacci sequence calculation
-fibRec1(a:long b:long n:long):long {
+static fibRec1(a:long b:long n:long):long {
     java/lang/System.out.println(b)
     if (n == 0L) {
         return b
@@ -45,7 +43,7 @@ fibRec1(a:long b:long n:long):long {
     }
 }
 
-fibRec(n:long):long {
+static fibRec(n:long):long {
     if n < 0L {
         return -1L
     }
@@ -56,7 +54,7 @@ fibRec(n:long):long {
 }
 
 // Naive implementation of bubble sort
-bubbleSort(list:List comp:Comparator):void {
+static bubbleSort(list:List comp:Comparator):void {
     var i = 0 while i < list.size() {
         var j = 0 while j < list.size() - 1 {
             if comp.compare(list.get(j) list.get(j+1)) < 0 {

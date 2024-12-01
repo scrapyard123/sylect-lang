@@ -2,6 +2,12 @@
 
 package sylect.bootstrap;
 
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Opcodes;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import sylect.CompilationException;
 import sylect.SylectBaseListener;
 import sylect.SylectParser;
@@ -15,22 +21,16 @@ import sylect.SylectParser.LoopStatementContext;
 import sylect.SylectParser.MethodDefinitionContext;
 import sylect.SylectParser.ProgramContext;
 import sylect.SylectParser.ReturnStatementContext;
-import sylect.bootstrap.support.AnnotationCompiler;
-import sylect.bootstrap.support.ExpressionCompiler;
 import sylect.bootstrap.metadata.FieldMeta;
 import sylect.bootstrap.metadata.LocalMeta;
 import sylect.bootstrap.metadata.MethodMeta;
 import sylect.bootstrap.metadata.TypeMeta;
 import sylect.bootstrap.metadata.TypeMeta.Kind;
-import sylect.bootstrap.util.ClassUtils;
 import sylect.bootstrap.metadata.statement.LoopContext;
+import sylect.bootstrap.support.AnnotationCompiler;
+import sylect.bootstrap.support.ExpressionCompiler;
+import sylect.bootstrap.util.ClassUtils;
 import sylect.util.Pair;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 import java.util.Stack;
@@ -124,13 +124,6 @@ public class BytecodeTargetListener extends SylectBaseListener {
         mv.visitLabel(methodStart);
 
         scopeManager.forEachLocal(this::visitLocalVariable);
-
-        // TODO: Proper constructor calls
-        if ("<init>".equals(methodMeta.name())) {
-            var classMeta = scopeManager.getClassMeta();
-            mv.visitVarInsn(Opcodes.ALOAD, 0);
-            mv.visitMethodInsn(Opcodes.INVOKESPECIAL, classMeta.baseClassName(), "<init>", "()V", false);
-        }
     }
 
     @Override

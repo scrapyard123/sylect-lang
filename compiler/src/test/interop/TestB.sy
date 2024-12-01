@@ -1,3 +1,4 @@
 class TestB <: TestA
-constructor():void { }
+constructor():void { super constructor() }
+a():int { return super a() + 1 }
 b():int { return 2 }

@@ -66,7 +66,7 @@ operator:
     '|';
 
 objectExpression: objectTerm ('.' objectTerm)*;
-objectTerm: IDENTIFIER ('(' expression* ')')? | STRING_LITERAL /* Only first term */;
+objectTerm: 'super'? IDENTIFIER ('(' expression* ')')? | STRING_LITERAL;
 
 // TYPES
 type: ('void' | 'int' | 'long' | 'float' | 'double' |

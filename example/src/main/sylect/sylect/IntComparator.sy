@@ -9,7 +9,7 @@ import {
 
 class sylect/IntComparator : Comparator
 
-constructor():void { }
+constructor():void { super constructor() }
 
 compare(var1:Object var2:Object):int {
     var int1 = [Integer]var1

@@ -28,6 +28,7 @@ import
 interface
 return
 static
+super
 this
 var
 while

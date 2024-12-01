@@ -96,7 +96,7 @@ Place your sources in `src/{main,test}/sylect` and add the following to `pom.xml
 | **»** Same-Object Field Assignment                      | :heavy_check_mark: | :notebook: |
 | **»** General Field Assignment                          | :x:                | :x:        |
 | **»** Array Assignment                                  | :x:                | :x:        |
-| **Expressions**                                         | :construction:     | :notebook: |
+| **Expressions**                                         | :heavy_check_mark: | :notebook: |
 | **»** Numerical Literals                                | :heavy_check_mark: | :notebook: |
 | **»** String Literals                                   | :heavy_check_mark: | :notebook: |
 | **»** Class Literals                                    | :heavy_check_mark: | :notebook: |
@@ -110,7 +110,7 @@ Place your sources in `src/{main,test}/sylect` and add the following to `pom.xml
 | **»** Boolean Operators                                 | :heavy_check_mark: | :notebook: |
 | **»** Array Operators                                   | :x:                | :x:        |
 | **»** Method Calls                                      | :heavy_check_mark: | :notebook: |
-| **»** Super/Constructor Calls                           | :notebook:         | :notebook: |
+| **»** Super/Constructor Calls                           | :heavy_check_mark: | :notebook: |
 | **»** Type Conversion                                   | :heavy_check_mark: | :notebook: |
 | **Method Calls**                                        | :heavy_check_mark: | :notebook: |
 | **»** Basic Method Calls                                | :heavy_check_mark: | :notebook: |
