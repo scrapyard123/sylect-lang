@@ -73,6 +73,11 @@ public record ClassMeta(String name, boolean iface,
 
         var methods = Optional.ofNullable(ctx.methodDefinition())
                 .map(methodDefinitions -> methodDefinitions.stream()
+                        .peek(methodDefinition -> {
+                            if (iface && methodDefinition.codeBlock() != null) {
+                                throw new CompilationException("interface classes may only contain abstract methods");
+                            }
+                        })
                         .map(methodDefinition -> MethodMeta.fromContext(scopeManager, methodDefinition))
                         .collect(Collectors.toSet()))
                 .orElse(Set.of());

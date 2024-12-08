@@ -4,15 +4,9 @@ import {
     java/util/List
 }
 
-// Interfaces are defined as follows, interfaces are always public.
+// Interface classes are defined as follows, they are always public.
 interface sylect/basic/InterfaceSyntax : List
 
-// Interfaces may contain both abstract and non-abstract methods.
+// Interface classes may only contain abstract methods and nothing else.
+// For compatibility reasons, it is possible to call Java's default methods.
 testMethod(a:int):int
-commonMethod():int { return 5 }
-
-// Static methods are not allowed in interfaces.
-// static staticMethod():void { return } -> sylect.bootstrap.CompilationException
-
-// Both static and usual fields are not allowed in interfaces.
-// field: int -> sylect.bootstrap.CompilationException
