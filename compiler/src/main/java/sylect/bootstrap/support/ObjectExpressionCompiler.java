@@ -168,7 +168,7 @@ public class ObjectExpressionCompiler {
 
         // Target method must be static if called from static method or when called on class
         if ((objectMeta == null && scopeManager.isStaticMethod()) || (objectMeta != null && objectMeta.isClassMeta())) {
-            if (!method.isStatic()) {
+            if (!target.isNewObject() && !method.isStatic()) {
                 throw new CompilationException(
                         "method is not static: " + method.name() + " in " + target.classMeta().name());
             }

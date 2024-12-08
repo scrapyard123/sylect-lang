@@ -15,6 +15,7 @@ import {
 
     java/io/PrintStream
 
+    java/util/Arrays
     java/util/ArrayList
 }
 
@@ -89,7 +90,7 @@ testMethod(
     }
 
     // You can use boolean operators in expressions, short-circuiting is supported.
-    if !(2 > 3) && (4 < 5) || scaryMethod() {
+    if !(2 > 3) && ((4 < 5) || scaryMethod()) {
         e = e + 1
     }
 
@@ -132,8 +133,11 @@ static staticTestMethod():PrintStream {
     return java/lang/System.err
 }
 
-// Types like bool, byte, char, short and all arrays have only black-box
-// support which means that you can pass them, but can't directly operate on them.
-static main(args:String[]!):void { }
+// Types like bool, byte, char, short and all arrays are called black-box types.
+// As suggested by name, you can only pass them, convert to/from them,
+// but can't directly operate on them.
+static main(args:String[]!):void {
+    var argList = Arrays.asList([Object[]!]args)
+}
 
 // Continue with InterfaceSyntax.sy

@@ -111,6 +111,7 @@ public record ClassMeta(String name, boolean iface,
                                         new TypeMeta(TypeMeta.Kind.VOID, false, null),
                                         convertParameters(constructor.getParameters()))),
                         Arrays.stream(clazz.getDeclaredMethods())
+                                .filter(method -> !method.isSynthetic())
                                 .map(method -> new MethodMeta(
                                         method.getName(),
                                         Modifier.isStatic(method.getModifiers()),

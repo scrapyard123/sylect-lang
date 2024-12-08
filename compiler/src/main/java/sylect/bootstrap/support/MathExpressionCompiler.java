@@ -130,23 +130,23 @@ public class MathExpressionCompiler {
                 var targetType = TypeMeta.fromContext(scopeManager, ctx.type());
 
                 if (targetType.isBlackBoxType() || operandType.isBlackBoxType()) {
-                    throw new CompilationException("cannot convert to/from black-box types");
-                }
+                    compileBlackBoxTypeConversion(targetType, operandType);
+                } else {
+                    switch (operandType.kind()) {
+                        case INTEGER -> compileTypeConversion(
+                                targetType, Opcodes.NOP, Opcodes.I2L, Opcodes.I2F, Opcodes.I2D);
+                        case LONG -> compileTypeConversion(
+                                targetType, Opcodes.L2I, Opcodes.NOP, Opcodes.L2F, Opcodes.L2D);
+                        case FLOAT -> compileTypeConversion(
+                                targetType, Opcodes.F2I, Opcodes.F2L, Opcodes.NOP, Opcodes.F2D);
+                        case DOUBLE -> compileTypeConversion(
+                                targetType, Opcodes.D2I, Opcodes.D2L, Opcodes.D2F, Opcodes.NOP);
 
-                switch (operandType.kind()) {
-                    case INTEGER -> compileTypeConversion(
-                            targetType, Opcodes.NOP, Opcodes.I2L, Opcodes.I2F, Opcodes.I2D);
-                    case LONG -> compileTypeConversion(
-                            targetType, Opcodes.L2I, Opcodes.NOP, Opcodes.L2F, Opcodes.L2D);
-                    case FLOAT -> compileTypeConversion(
-                            targetType, Opcodes.F2I, Opcodes.F2L, Opcodes.NOP, Opcodes.F2D);
-                    case DOUBLE -> compileTypeConversion(
-                            targetType, Opcodes.D2I, Opcodes.D2L, Opcodes.D2F, Opcodes.NOP);
+                        case CLASS -> mv.visitTypeInsn(Opcodes.CHECKCAST, targetType.className());
 
-                    case CLASS -> mv.visitTypeInsn(Opcodes.CHECKCAST, targetType.className());
-
-                    default -> throw new CompilationException(
-                            "could not convert " + operandType + " to " + targetType);
+                        default -> throw new CompilationException(
+                                "could not convert " + operandType + " to " + targetType);
+                    }
                 }
 
                 yield targetType;
@@ -162,6 +162,38 @@ public class MathExpressionCompiler {
             case DOUBLE -> mv.visitInsn(toDouble);
             default -> throw new CompilationException("could not convert to: " + targetType);
         }
+    }
+
+    private void compileBlackBoxTypeConversion(TypeMeta targetType, TypeMeta operandType) {
+        // We can convert between object array types
+        if (operandType.isArray() && targetType.isArray() &&
+                Kind.CLASS.equals(targetType.arrayElementType().kind()) &&
+                Kind.CLASS.equals(operandType.arrayElementType().kind())) {
+            mv.visitTypeInsn(Opcodes.CHECKCAST, targetType.asDescriptor());
+            return;
+        }
+
+        // We can convert other black box types to integer by doing nothing
+        if (operandType.isBlackBoxType()) {
+            if (Kind.INTEGER.equals(targetType.kind())) {
+                return;
+            } else {
+                throw new CompilationException("could not convert " + operandType + " to non-integer type");
+            }
+        }
+
+        // We can convert integer to other black box types
+        if (Kind.INTEGER.equals(operandType.kind()) && targetType.isBlackBoxType()) {
+            switch (targetType.kind()) {
+                case BOOLEAN -> { /* Just do nothing */ }
+                case BYTE -> mv.visitInsn(Opcodes.I2B);
+                case CHAR -> mv.visitInsn(Opcodes.I2C);
+                case SHORT -> mv.visitInsn(Opcodes.I2S);
+                default -> throw new CompilationException("integer could not be converted to: " + targetType);
+            }
+        }
+
+        throw new CompilationException("could not convert " + operandType + " to: " + targetType);
     }
 
     private void compileOperator(OperatorMeta operatorMeta) {

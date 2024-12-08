@@ -2,7 +2,7 @@
 
 **THIS IS AN EXPERIMENTAL PROJECT NOT INTENDED FOR PRODUCTION USE.**
 
-Sylect is a simple JVM language tailored for developing scalable applications based on IoC containers.
+Sylect is an experimental JVM language with focus on simplicity.
 
 ## Getting Started
 
@@ -112,10 +112,10 @@ Place your sources in `src/{main,test}/sylect` and add the following to `pom.xml
 | **»** Method Calls                                      | :heavy_check_mark: | :notebook: |
 | **»** Super/Constructor Calls                           | :heavy_check_mark: | :notebook: |
 | **»** Type Conversion                                   | :heavy_check_mark: | :notebook: |
+| **»** Black-Box Type Conversion                         | :heavy_check_mark: | :notebook: |
 | **Method Calls**                                        | :heavy_check_mark: | :notebook: |
 | **»** Basic Method Calls                                | :heavy_check_mark: | :notebook: |
 | **»** Overloaded Method Calls                           | :heavy_check_mark: | :notebook: |
-| **»** Unsupported Type Conversion                       | :x:                | :x:        |
 | **Conditional Statement**                               | :heavy_check_mark: | :notebook: |
 | **Loop Statements**                                     | :heavy_check_mark: | :notebook: |
 | **»** While Loop                                        | :heavy_check_mark: | :notebook: |
