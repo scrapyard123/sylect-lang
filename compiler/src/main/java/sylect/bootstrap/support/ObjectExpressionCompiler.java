@@ -163,7 +163,7 @@ public class ObjectExpressionCompiler {
                 target.isConstructor() ? "<init>" : identifier,
                 parameterTypes);
         if (method == null) {
-            throw new CompilationException("unknown method: " + identifier + " in " + target.classMeta().name());
+            throw new CompilationException("unknown method: " + identifier + " in " + target.classMeta());
         }
 
         // Target method must be static if called from static method or when called on class

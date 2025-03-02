@@ -191,6 +191,7 @@ public class MathExpressionCompiler {
                 case SHORT -> mv.visitInsn(Opcodes.I2S);
                 default -> throw new CompilationException("integer could not be converted to: " + targetType);
             }
+            return;
         }
 
         throw new CompilationException("could not convert " + operandType + " to: " + targetType);

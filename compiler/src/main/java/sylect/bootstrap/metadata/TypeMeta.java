@@ -83,7 +83,7 @@ public record TypeMeta(Kind kind, boolean isArray, String className) {
             return new TypeMeta(Kind.SHORT, isArray, null);
         }
 
-        return new TypeMeta(Kind.CLASS, isArray, ClassMeta.javaClassNameToSylectClassName(clazz.getCanonicalName()));
+        return new TypeMeta(Kind.CLASS, isArray, ClassMeta.javaClassNameToSylectClassName(clazz.getName()));
     }
 
     public TypeMeta arrayElementType() {

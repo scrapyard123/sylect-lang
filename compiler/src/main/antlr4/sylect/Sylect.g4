@@ -73,7 +73,7 @@ type: ('void' | 'int' | 'long' | 'float' | 'double' |
     'bool' | 'byte' | 'char' | 'short' | IDENTIFIER) '[]'? '!'?;
 
 // LEXER DEFINITIONS
-LITERAL: [0-9.]+ ('L' | 'F')?;
+LITERAL: [0-9]+ ('.' [0-9]+)? ('L' | 'F')?;
 STRING_LITERAL: '"' .*? '"';
 IDENTIFIER: [a-zA-Z] ([a-zA-Z0-9_$/])*;
 

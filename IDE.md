@@ -52,7 +52,13 @@ double
 float
 int
 long
+bool
+byte
+char
+short
 void
+[
+]
 ```
 
 Fourth tab:
