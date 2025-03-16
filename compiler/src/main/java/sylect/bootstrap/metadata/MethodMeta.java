@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 
 public record MethodMeta(
         String name,
-        boolean isStatic, boolean isAbstract,
+        boolean isStatic, boolean isNative, boolean isAbstract,
         TypeMeta returnType,
         List<ParameterMeta> parameters
 ) {
@@ -21,8 +21,11 @@ public record MethodMeta(
             name = "<init>";
         }
 
-        var isStatic = ctx.getText().startsWith("static");
-        var isAbstract = ctx.codeBlock() == null;
+        var isStatic = ctx.methodModifiers().getText().contains("static");
+        var isNative = ctx.methodModifiers().getText().contains("native");
+
+        // Native methods don't have code blocks too
+        var isAbstract = ctx.codeBlock() == null && !isNative;
         if (isStatic && isAbstract) {
             throw new CompilationException("Static method cannot be abstract");
         }
@@ -32,7 +35,7 @@ public record MethodMeta(
                 .map(parameter -> new ParameterMeta(parameter.IDENTIFIER().getText(),
                         TypeMeta.fromContext(scopeManager, parameter.type())))
                 .collect(Collectors.toList());
-        return new MethodMeta(name, isStatic, isAbstract, returnType, parameters);
+        return new MethodMeta(name, isStatic, isNative, isAbstract, returnType, parameters);
     }
 
     public String asDescriptor() {

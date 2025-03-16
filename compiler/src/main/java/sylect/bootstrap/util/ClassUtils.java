@@ -31,6 +31,8 @@ public final class ClassUtils {
             case 20 -> Opcodes.V20;
             case 21 -> Opcodes.V21;
             case 22 -> Opcodes.V22;
+            case 23 -> Opcodes.V23;
+            case 24 -> Opcodes.V24;
             default -> throw new CompilationException("unsupported target: " + target);
         };
     }

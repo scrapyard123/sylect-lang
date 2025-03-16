@@ -111,8 +111,7 @@ public record ClassMeta(String name, boolean iface,
                         Arrays.stream(clazz.getDeclaredConstructors())
                                 .map(constructor -> new MethodMeta(
                                         "<init>",
-                                        false,
-                                        false,
+                                        false, false, false,
                                         new TypeMeta(TypeMeta.Kind.VOID, false, null),
                                         convertParameters(constructor.getParameters()))),
                         Arrays.stream(clazz.getDeclaredMethods())
@@ -120,6 +119,7 @@ public record ClassMeta(String name, boolean iface,
                                 .map(method -> new MethodMeta(
                                         method.getName(),
                                         Modifier.isStatic(method.getModifiers()),
+                                        Modifier.isNative(method.getModifiers()),
                                         Modifier.isAbstract(method.getModifiers()),
                                         TypeMeta.fromJavaType(method.getReturnType()),
                                         convertParameters(method.getParameters()))))

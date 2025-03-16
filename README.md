@@ -73,6 +73,7 @@ Place your sources in `src/{main,test}/sylect` and add the following to `pom.xml
 | **»** Static Fields/Methods                             | :heavy_check_mark: | :notebook: |
 | **»** Final Fields (+ for Interfaces)                   | :x:                | :x:        |
 | **»** Final Methods/Classes/etc                         | :x:                | :x:        |
+| **»** Native Methods                                    | :heavy_check_mark: | :notebook: |
 | **Annotations**                                         | :heavy_check_mark: | :notebook: |
 | **»** Annotations for Classes/Fields/Methods/Parameters | :heavy_check_mark: | :notebook: |
 | **»** Annotations for Local Variables/etc               | :x:                | :x:        |
@@ -128,4 +129,3 @@ Place your sources in `src/{main,test}/sylect` and add the following to `pom.xml
 | **Infrastructure**                                      | :heavy_check_mark: | :notebook: |
 | **»** Maven Plugin                                      | :heavy_check_mark: | :notebook: |
 | **»** Testing Support in Maven Plugin                   | :heavy_check_mark: | :notebook: |
-| **»** Algorithms & Data Structures                      | :question:         | :question: |

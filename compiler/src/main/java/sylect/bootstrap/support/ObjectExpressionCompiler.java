@@ -74,13 +74,18 @@ public class ObjectExpressionCompiler {
         // Try to find corresponding local variable
         var local = scopeManager.getLocal(identifier);
         if (local != null) {
-            switch (local.type().kind()) {
-                case INTEGER -> mv.visitIntInsn(Opcodes.ILOAD, local.offset());
-                case LONG -> mv.visitIntInsn(Opcodes.LLOAD, local.offset());
-                case FLOAT -> mv.visitIntInsn(Opcodes.FLOAD, local.offset());
-                case DOUBLE -> mv.visitIntInsn(Opcodes.DLOAD, local.offset());
-                case CLASS -> mv.visitIntInsn(Opcodes.ALOAD, local.offset());
-                default -> throw new CompilationException("unsupported variable type: " + local.type());
+            var type = local.type();
+            if (type.isArray()) {
+                mv.visitIntInsn(Opcodes.ALOAD, local.offset());
+            } else {
+                switch (local.type().kind()) {
+                    case INTEGER -> mv.visitIntInsn(Opcodes.ILOAD, local.offset());
+                    case LONG -> mv.visitIntInsn(Opcodes.LLOAD, local.offset());
+                    case FLOAT -> mv.visitIntInsn(Opcodes.FLOAD, local.offset());
+                    case DOUBLE -> mv.visitIntInsn(Opcodes.DLOAD, local.offset());
+                    case CLASS -> mv.visitIntInsn(Opcodes.ALOAD, local.offset());
+                    default -> throw new CompilationException("unsupported variable type: " + local.type());
+                }
             }
             return new ObjectMeta(null, local.type());
         }

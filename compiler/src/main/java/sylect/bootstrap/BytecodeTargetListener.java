@@ -105,6 +105,7 @@ public class BytecodeTargetListener extends SylectBaseListener {
 
         mv = cw.visitMethod(Opcodes.ACC_PUBLIC +
                         (methodMeta.isStatic() ? Opcodes.ACC_STATIC : 0) +
+                        (methodMeta.isNative() ? Opcodes.ACC_NATIVE : 0) +
                         (methodMeta.isAbstract() ? Opcodes.ACC_ABSTRACT : 0),
                 methodMeta.name(),
                 methodMeta.asDescriptor(),
@@ -278,18 +279,22 @@ public class BytecodeTargetListener extends SylectBaseListener {
             return;
         }
 
-        switch (expressionType.kind()) {
-            case VOID -> mv.visitInsn(Opcodes.RETURN);
+        if (expressionType.isArray()) {
+            mv.visitInsn(Opcodes.ARETURN);
+        } else {
+            switch (expressionType.kind()) {
+                case VOID -> mv.visitInsn(Opcodes.RETURN);
 
-            case INTEGER -> mv.visitInsn(Opcodes.IRETURN);
-            case LONG -> mv.visitInsn(Opcodes.LRETURN);
-            case FLOAT -> mv.visitInsn(Opcodes.FRETURN);
-            case DOUBLE -> mv.visitInsn(Opcodes.DRETURN);
-            case CLASS -> mv.visitInsn(Opcodes.ARETURN);
+                case INTEGER -> mv.visitInsn(Opcodes.IRETURN);
+                case LONG -> mv.visitInsn(Opcodes.LRETURN);
+                case FLOAT -> mv.visitInsn(Opcodes.FRETURN);
+                case DOUBLE -> mv.visitInsn(Opcodes.DRETURN);
+                case CLASS -> mv.visitInsn(Opcodes.ARETURN);
 
-            case BOOLEAN, BYTE, CHAR, SHORT -> mv.visitInsn(Opcodes.IRETURN);
+                case BOOLEAN, BYTE, CHAR, SHORT -> mv.visitInsn(Opcodes.IRETURN);
 
-            default -> throw new CompilationException("unsupported return type: " + expressionType);
+                default -> throw new CompilationException("unsupported return type: " + expressionType);
+            }
         }
     }
 
@@ -298,7 +303,7 @@ public class BytecodeTargetListener extends SylectBaseListener {
         LOGGER.debug("method definition end: {}", methodMeta);
 
         // Guard to protect from lack of return statement
-        if (!methodMeta.isAbstract()) {
+        if (!methodMeta.isAbstract() && !methodMeta.isNative()) {
             if (methodMeta.returnType().kind() == Kind.VOID) {
                 mv.visitInsn(Opcodes.RETURN);
             } else {
@@ -339,13 +344,17 @@ public class BytecodeTargetListener extends SylectBaseListener {
     }
 
     private void assignLocalVariable(LocalMeta localMeta, TypeMeta expressionType) {
-        switch (expressionType.kind()) {
-            case INTEGER -> mv.visitIntInsn(Opcodes.ISTORE, localMeta.offset());
-            case LONG -> mv.visitIntInsn(Opcodes.LSTORE, localMeta.offset());
-            case FLOAT -> mv.visitIntInsn(Opcodes.FSTORE, localMeta.offset());
-            case DOUBLE -> mv.visitIntInsn(Opcodes.DSTORE, localMeta.offset());
-            case CLASS -> mv.visitIntInsn(Opcodes.ASTORE, localMeta.offset());
-            default -> throw new CompilationException("unsupported assignment type: " + expressionType);
+        if (expressionType.isArray()) {
+            mv.visitIntInsn(Opcodes.ASTORE, localMeta.offset());
+        } else {
+            switch (expressionType.kind()) {
+                case INTEGER -> mv.visitIntInsn(Opcodes.ISTORE, localMeta.offset());
+                case LONG -> mv.visitIntInsn(Opcodes.LSTORE, localMeta.offset());
+                case FLOAT -> mv.visitIntInsn(Opcodes.FSTORE, localMeta.offset());
+                case DOUBLE -> mv.visitIntInsn(Opcodes.DSTORE, localMeta.offset());
+                case CLASS -> mv.visitIntInsn(Opcodes.ASTORE, localMeta.offset());
+                default -> throw new CompilationException("unsupported assignment type: " + expressionType);
+            }
         }
     }
 

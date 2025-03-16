@@ -17,9 +17,10 @@ interfaceClass: IDENTIFIER;
 fieldDefinition: 'static'? IDENTIFIER ':' type annotationBlock?;
 
 methodDefinition:
-    'static'? IDENTIFIER '(' parameter* ')' ':' type
+    methodModifiers IDENTIFIER '(' parameter* ')' ':' type
     annotationBlock?
     codeBlock?;
+methodModifiers: 'static'? 'native'?;
 parameter: IDENTIFIER ':' type annotationBlock?;
 
 annotationBlock: '[' annotationDefinition+ ']';

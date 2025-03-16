@@ -26,6 +26,7 @@ else
 if
 import
 interface
+native
 return
 static
 super

@@ -2,8 +2,8 @@
 
 package sylect.bootstrap.metadata;
 
-import sylect.SylectParser.TypeContext;
 import sylect.CompilationException;
+import sylect.SylectParser.TypeContext;
 import sylect.bootstrap.ScopeManager;
 
 public record TypeMeta(Kind kind, boolean isArray, String className) {
@@ -95,11 +95,15 @@ public record TypeMeta(Kind kind, boolean isArray, String className) {
     }
 
     public int getLocalSize() {
-        return switch (kind) {
-            case VOID -> 0;
-            case LONG, DOUBLE -> 2;
-            default -> 1;
-        };
+        if (isArray()) {
+            return 1;
+        } else {
+            return switch (kind) {
+                case VOID -> 0;
+                case LONG, DOUBLE -> 2;
+                default -> 1;
+            };
+        }
     }
 
     public String asDescriptor() {
