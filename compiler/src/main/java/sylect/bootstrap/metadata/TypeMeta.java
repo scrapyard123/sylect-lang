@@ -4,11 +4,11 @@ package sylect.bootstrap.metadata;
 
 import sylect.CompilationException;
 import sylect.SylectParser.TypeContext;
-import sylect.bootstrap.ScopeManager;
+import sylect.bootstrap.context.ImportManager;
 
 public record TypeMeta(Kind kind, boolean isArray, String className) {
 
-    public static TypeMeta fromContext(ScopeManager scopeManager, TypeContext ctx) {
+    public static TypeMeta fromContext(ImportManager importManager, TypeContext ctx) {
         var typeString = ctx.getText();
 
         boolean isBlackBox = false;
@@ -44,7 +44,7 @@ public record TypeMeta(Kind kind, boolean isArray, String className) {
 
         return new TypeMeta(
                 kind, isArray,
-                kind == Kind.CLASS ? scopeManager.resolveImport(typeString) : null);
+                kind == Kind.CLASS ? importManager.resolveImport(typeString) : null);
     }
 
     public static TypeMeta fromJavaType(Class<?> clazz) {

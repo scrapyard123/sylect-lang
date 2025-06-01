@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 package sylect.bootstrap.metadata.statement;
 
 import org.objectweb.asm.Label;

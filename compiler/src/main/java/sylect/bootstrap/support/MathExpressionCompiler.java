@@ -9,7 +9,10 @@ import sylect.CompilationException;
 import sylect.SylectParser;
 import sylect.SylectParser.MathExpressionContext;
 import sylect.SylectParser.MathTermContext;
-import sylect.bootstrap.ScopeManager;
+import sylect.bootstrap.metadata.ClassMeta;
+import sylect.bootstrap.context.ClassMetaManager;
+import sylect.bootstrap.context.ImportManager;
+import sylect.bootstrap.context.ScopeManager;
 import sylect.bootstrap.metadata.TypeMeta;
 import sylect.bootstrap.metadata.TypeMeta.Kind;
 import sylect.bootstrap.metadata.expression.OperatorMeta;
@@ -20,14 +23,26 @@ import java.util.Objects;
 import java.util.Stack;
 
 public class MathExpressionCompiler {
+
+    private final ClassMetaManager classMetaManager;
+    private final ImportManager importManager;
     private final ScopeManager scopeManager;
+
     private final MethodVisitor mv;
 
     private final Stack<TypeMeta> operands;
     private final Stack<OperatorMeta> operators;
 
-    public MathExpressionCompiler(ScopeManager scopeManager, MethodVisitor mv) {
+    public MathExpressionCompiler(
+            ClassMetaManager classMetaManager,
+            ImportManager importManager,
+            ScopeManager scopeManager,
+            MethodVisitor mv) {
+
+        this.classMetaManager = Objects.requireNonNull(classMetaManager);
+        this.importManager = Objects.requireNonNull(importManager);
         this.scopeManager = Objects.requireNonNull(scopeManager);
+
         this.mv = Objects.requireNonNull(mv);
 
         this.operands = new Stack<>();
@@ -71,16 +86,18 @@ public class MathExpressionCompiler {
         }
 
         if (ctx.objectExpression() != null) {
-            operandType = new ObjectExpressionCompiler(scopeManager, mv).compile(ctx.objectExpression());
+            operandType = new ObjectExpressionCompiler(classMetaManager, importManager, scopeManager, mv)
+                    .compile(ctx.objectExpression());
         }
 
         if (ctx.expression() != null) {
-            operandType = new ExpressionCompiler(scopeManager, mv).compile(ctx.expression());
+            operandType = new ExpressionCompiler(classMetaManager, importManager, scopeManager, mv)
+                    .compile(ctx.expression());
         }
 
         if (ctx.unaryOperator() != null) {
-            for (var unaryOperatorContext : ctx.unaryOperator()) {
-                operandType = compileUnaryOperator(unaryOperatorContext, operandType);
+            for (int i = ctx.unaryOperator().size() - 1; i >= 0; i--) {
+                operandType = compileUnaryOperator(ctx.unaryOperator(i), operandType);
             }
         }
 
@@ -127,7 +144,7 @@ public class MathExpressionCompiler {
             }
 
             case TYPE_CONVERSION -> {
-                var targetType = TypeMeta.fromContext(scopeManager, ctx.type());
+                var targetType = TypeMeta.fromContext(importManager, ctx.type());
 
                 if (targetType.isBlackBoxType() || operandType.isBlackBoxType()) {
                     compileBlackBoxTypeConversion(targetType, operandType);
@@ -169,6 +186,13 @@ public class MathExpressionCompiler {
         if (operandType.isArray() && targetType.isArray() &&
                 Kind.CLASS.equals(targetType.arrayElementType().kind()) &&
                 Kind.CLASS.equals(operandType.arrayElementType().kind())) {
+            mv.visitTypeInsn(Opcodes.CHECKCAST, targetType.asDescriptor());
+            return;
+        }
+
+        // We can convert Object to array
+        if (Kind.CLASS.equals(operandType.kind()) && operandType.className().equals(ClassMeta.JAVA_OBJECT)
+                && targetType.isArray()) {
             mv.visitTypeInsn(Opcodes.CHECKCAST, targetType.asDescriptor());
             return;
         }

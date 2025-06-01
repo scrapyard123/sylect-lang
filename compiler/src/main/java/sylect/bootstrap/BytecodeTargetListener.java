@@ -21,6 +21,9 @@ import sylect.SylectParser.LoopStatementContext;
 import sylect.SylectParser.MethodDefinitionContext;
 import sylect.SylectParser.ProgramContext;
 import sylect.SylectParser.ReturnStatementContext;
+import sylect.bootstrap.context.ClassMetaManager;
+import sylect.bootstrap.context.ImportManager;
+import sylect.bootstrap.context.ScopeManager;
 import sylect.bootstrap.metadata.FieldMeta;
 import sylect.bootstrap.metadata.LocalMeta;
 import sylect.bootstrap.metadata.MethodMeta;
@@ -32,13 +35,14 @@ import sylect.bootstrap.support.ExpressionCompiler;
 import sylect.bootstrap.util.ClassUtils;
 import sylect.util.Pair;
 
-import java.util.Objects;
 import java.util.Stack;
 
 public class BytecodeTargetListener extends SylectBaseListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(BytecodeTargetListener.class);
 
     private final int target;
+    private final ClassMetaManager classMetaManager;
+    private final ImportManager importManager;
     private final ScopeManager scopeManager;
 
     private final ClassWriter cw;
@@ -52,12 +56,15 @@ public class BytecodeTargetListener extends SylectBaseListener {
     private final Stack<Pair<Label, Label>> conditionalBlocks;
     private final Stack<LoopContext> loopBlocks;
 
-    public BytecodeTargetListener(int target, ScopeManager scopeManager) {
+    public BytecodeTargetListener(int target, ClassMetaManager classMetaManager) {
         this.target = target;
-        this.scopeManager = Objects.requireNonNull(scopeManager, "scopeManager");
+
+        this.classMetaManager = classMetaManager;
+        this.importManager = new ImportManager();
+        this.scopeManager = new ScopeManager(classMetaManager, importManager);
 
         this.cw = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
-        this.annotationCompiler = new AnnotationCompiler(scopeManager);
+        this.annotationCompiler = new AnnotationCompiler(classMetaManager, importManager);
 
         this.conditionalBlocks = new Stack<>();
         this.loopBlocks = new Stack<>();
@@ -66,7 +73,7 @@ public class BytecodeTargetListener extends SylectBaseListener {
     @Override
     public void enterProgram(ProgramContext ctx) {
         LOGGER.debug("program start");
-        scopeManager.enterSource(ctx);
+        importManager.enterSource(ctx);
     }
 
     @Override
@@ -86,7 +93,7 @@ public class BytecodeTargetListener extends SylectBaseListener {
 
     @Override
     public void enterFieldDefinition(FieldDefinitionContext ctx) {
-        var fieldMeta = FieldMeta.fromContext(scopeManager, ctx);
+        var fieldMeta = FieldMeta.fromContext(importManager, ctx);
         LOGGER.debug("field definition: {}", fieldMeta);
 
         var fv = cw.visitField(
@@ -129,7 +136,8 @@ public class BytecodeTargetListener extends SylectBaseListener {
 
     @Override
     public void enterVariableDefinitionStatement(SylectParser.VariableDefinitionStatementContext ctx) {
-        var expressionType = new ExpressionCompiler(scopeManager, mv).compile(ctx.expression());
+        var expressionType = new ExpressionCompiler(classMetaManager, importManager, scopeManager, mv)
+                .compile(ctx.expression());
 
         var localMeta = scopeManager.addLocal(ctx.IDENTIFIER().getText(), expressionType);
         LOGGER.debug("variable definition: {}", localMeta);
@@ -146,7 +154,8 @@ public class BytecodeTargetListener extends SylectBaseListener {
         if (localMeta != null) {
             LOGGER.debug("assignment statement: {} to {}", ctx.expression().getText(), localMeta);
 
-            var expressionType = new ExpressionCompiler(scopeManager, mv).compile(ctx.expression());
+            var expressionType = new ExpressionCompiler(classMetaManager, importManager, scopeManager, mv)
+                    .compile(ctx.expression());
             if (!expressionType.equals(localMeta.type())) {
                 throw new CompilationException("cannot assign " + expressionType + " to " + localMeta.type());
             }
@@ -169,7 +178,8 @@ public class BytecodeTargetListener extends SylectBaseListener {
     public void enterExpressionStatement(ExpressionStatementContext ctx) {
         LOGGER.debug("expression statement: {}", ctx.expression().getText());
 
-        var expressionType = new ExpressionCompiler(scopeManager, mv).compile(ctx.expression());
+        var expressionType = new ExpressionCompiler(classMetaManager, importManager, scopeManager, mv)
+                .compile(ctx.expression());
         switch (expressionType.getLocalSize()) {
             case 1 -> mv.visitInsn(Opcodes.POP);
             case 2 -> mv.visitInsn(Opcodes.POP2);
@@ -180,7 +190,8 @@ public class BytecodeTargetListener extends SylectBaseListener {
     public void enterConditionalStatement(ConditionalStatementContext ctx) {
         LOGGER.debug("conditional statement start: {}", ctx.expression().getText());
 
-        var expressionType = new ExpressionCompiler(scopeManager, mv).compile(ctx.expression());
+        var expressionType = new ExpressionCompiler(classMetaManager, importManager, scopeManager, mv)
+                .compile(ctx.expression());
         if (expressionType.kind() != Kind.INTEGER) {
             throw new CompilationException("expected integer return type: " + ctx.expression().getText());
         }
@@ -225,7 +236,8 @@ public class BytecodeTargetListener extends SylectBaseListener {
         mv.visitLabel(loopStart);
         loopBlocks.push(new LoopContext(loopStart, eachBlock, otherCode));
 
-        var expressionType = new ExpressionCompiler(scopeManager, mv).compile(ctx.expression());
+        var expressionType = new ExpressionCompiler(classMetaManager, importManager, scopeManager, mv)
+                .compile(ctx.expression());
         if (expressionType.kind() != Kind.INTEGER) {
             throw new CompilationException("expected integer return type: " + ctx.expression().getText());
         }
@@ -267,16 +279,11 @@ public class BytecodeTargetListener extends SylectBaseListener {
     @Override
     public void enterReturnStatement(ReturnStatementContext ctx) {
         var expressionType = ctx.expression() == null ? new TypeMeta(Kind.VOID, false, null)
-                : new ExpressionCompiler(scopeManager, mv).compile(ctx.expression());
+                : new ExpressionCompiler(classMetaManager, importManager, scopeManager, mv).compile(ctx.expression());
         LOGGER.debug("return statement: {} from {}", expressionType, methodMeta.returnType());
 
         if (!methodMeta.returnType().equals(expressionType)) {
             throw new CompilationException("cannot return " + expressionType + " as " + methodMeta.returnType());
-        }
-
-        if (expressionType.isArray()) {
-            mv.visitInsn(Opcodes.ARETURN);
-            return;
         }
 
         if (expressionType.isArray()) {
@@ -367,7 +374,7 @@ public class BytecodeTargetListener extends SylectBaseListener {
             mv.visitVarInsn(Opcodes.ALOAD, 0);
         }
 
-        var expressionType = new ExpressionCompiler(scopeManager, mv).compile(ctx);
+        var expressionType = new ExpressionCompiler(classMetaManager, importManager, scopeManager, mv).compile(ctx);
         if (!expressionType.equals(fieldMeta.type())) {
             throw new CompilationException("cannot assign " + expressionType + " to " + fieldMeta.type());
         }

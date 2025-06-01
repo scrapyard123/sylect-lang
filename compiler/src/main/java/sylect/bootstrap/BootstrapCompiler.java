@@ -9,12 +9,13 @@ import sylect.SylectCompiler;
 import sylect.SylectLexer;
 import sylect.SylectParser;
 import sylect.SylectParser.ProgramContext;
+import sylect.bootstrap.context.ClassMetaManager;
 import sylect.bootstrap.metadata.ClassMeta;
 
 public class BootstrapCompiler implements SylectCompiler {
 
     private final int target;
-    private final ScopeManager scopeManager;
+    private final ClassMetaManager classMetaManager;
 
     public BootstrapCompiler() {
         this(BootstrapCompiler.class.getClassLoader(), SylectCompiler.DEFAULT_TARGET);
@@ -22,13 +23,13 @@ public class BootstrapCompiler implements SylectCompiler {
 
     public BootstrapCompiler(ClassLoader classLoader, int target) {
         this.target = target;
-        this.scopeManager = new ScopeManager(classLoader);
+        this.classMetaManager = new ClassMetaManager(classLoader);
     }
 
     public byte[] compile(ProgramContext tree) {
         var walker = new ParseTreeWalker();
 
-        var bytecodeTargetListener = new BytecodeTargetListener(target, scopeManager);
+        var bytecodeTargetListener = new BytecodeTargetListener(target, classMetaManager);
         walker.walk(bytecodeTargetListener, tree);
         return bytecodeTargetListener.getBytecode();
     }
@@ -48,8 +49,8 @@ public class BootstrapCompiler implements SylectCompiler {
 
         var tree = parser.program();
 
-        var partialClassMeta = ClassMeta.fromSylectTree(scopeManager, tree);
-        scopeManager.addToSourceSet(partialClassMeta);
+        var partialClassMeta = ClassMeta.fromSylectTree(tree);
+        classMetaManager.addToSourceSet(partialClassMeta);
 
         return tree;
     }

@@ -6,7 +6,9 @@ import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Type;
 import sylect.CompilationException;
 import sylect.SylectParser;
-import sylect.bootstrap.ScopeManager;
+import sylect.bootstrap.context.ClassMetaManager;
+import sylect.bootstrap.context.ImportManager;
+import sylect.bootstrap.context.ScopeManager;
 import sylect.bootstrap.metadata.MethodMeta;
 import sylect.bootstrap.metadata.TypeMeta;
 import sylect.bootstrap.util.ClassUtils;
@@ -15,10 +17,12 @@ import java.util.function.Function;
 
 public class AnnotationCompiler {
 
-    private final ScopeManager scopeManager;
+    private final ClassMetaManager classMetaManager;
+    private final ImportManager importManager;
 
-    public AnnotationCompiler(ScopeManager scopeManager) {
-        this.scopeManager = scopeManager;
+    public AnnotationCompiler(ClassMetaManager classMetaManager, ImportManager importManager) {
+        this.classMetaManager = classMetaManager;
+        this.importManager = importManager;
     }
 
     public void visitAnnotationBlock(
@@ -38,7 +42,7 @@ public class AnnotationCompiler {
             Function<String, AnnotationVisitor> visitorGenerator,
             TypeMeta expectedType) {
 
-        var classMeta = scopeManager.resolveClass(scopeManager.resolveImport(ctx.type().getText()));
+        var classMeta = classMetaManager.resolveClass(importManager.resolveImport(ctx.type().getText()));
         var visitor = visitorGenerator.apply(classMeta.asTypeMeta().asDescriptor());
 
         if (expectedType != null && !classMeta.asTypeMeta().equals(expectedType.arrayElementType())) {
@@ -83,7 +87,7 @@ public class AnnotationCompiler {
         }
         if (param.IDENTIFIER().size() > 1) {
             visitor.visit(name, Type.getType(
-                    scopeManager.resolveClass(scopeManager.resolveImport(param.IDENTIFIER(1).getText()))
+                    classMetaManager.resolveClass(importManager.resolveImport(param.IDENTIFIER(1).getText()))
                             .asTypeMeta()
                             .asDescriptor()));
         }
@@ -118,7 +122,7 @@ public class AnnotationCompiler {
         if (param.IDENTIFIER().size() > 1) {
             param.IDENTIFIER().forEach(ctx ->
                     visitor.visit(name, Type.getType(
-                            scopeManager.resolveClass(scopeManager.resolveImport(ctx.getText()))
+                            classMetaManager.resolveClass(importManager.resolveImport(ctx.getText()))
                                     .asTypeMeta()
                                     .asDescriptor())));
         }

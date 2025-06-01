@@ -1,76 +1,42 @@
 // SPDX-License-Identifier: MIT
 
-package sylect.bootstrap;
+package sylect.bootstrap.context;
 
 import sylect.CompilationException;
 import sylect.SylectParser.ClassDefinitionContext;
-import sylect.SylectParser.ImportSectionContext;
 import sylect.SylectParser.MethodDefinitionContext;
-import sylect.SylectParser.ProgramContext;
 import sylect.bootstrap.metadata.ClassMeta;
 import sylect.bootstrap.metadata.FieldMeta;
 import sylect.bootstrap.metadata.LocalMeta;
 import sylect.bootstrap.metadata.MethodMeta;
 import sylect.bootstrap.metadata.ParameterMeta;
 import sylect.bootstrap.metadata.TypeMeta;
-import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class ScopeManager {
-    private final ClassLoader classLoader;
+
+    private final ClassMetaManager classMetaManager;
+    private final ImportManager importManager;
 
     private final Map<String, LocalMeta> locals = new HashMap<>();
-    private final Map<String, ClassMeta> classMetaMap = new HashMap<>();
 
-    private Map<String, String> imports;
     private ClassMeta classMeta;
 
     private boolean staticMethod = false;
     private int currentOffset = 0;
 
-    public ScopeManager(ClassLoader classLoader) {
-        this.classLoader = classLoader;
-    }
-
-    public void enterSource(ProgramContext ctx) {
-        imports = Optional.ofNullable(ctx.importSection())
-                .map(ImportSectionContext::IDENTIFIER)
-                .map(imports -> Stream.concat(
-                                Stream.of(ctx.classDefinition().IDENTIFIER().getText()),
-                                imports.stream().map(TerminalNode::getText))
-                        .collect(Collectors.toMap(ClassMeta::shortClassName, Function.identity())))
-                .orElse(Map.of());
-    }
-
-    public String resolveImport(String identifier) {
-        return imports.getOrDefault(identifier, identifier);
-    }
-
-    public ClassMeta resolveClass(String identifier) {
-        return classMetaMap.computeIfAbsent(identifier, id -> {
-            try {
-                return ClassMeta.fromJavaClass(classLoader.loadClass(ClassMeta.sylectClassNameToJavaClassName(id)));
-            } catch (ClassNotFoundException e) {
-                throw new CompilationException("unknown class: " + id);
-            }
-        });
-    }
-
-    public void addToSourceSet(ClassMeta classMeta) {
-        classMetaMap.put(classMeta.name(), classMeta);
+    public ScopeManager(ClassMetaManager classMetaManager, ImportManager importManager) {
+        this.classMetaManager = classMetaManager;
+        this.importManager = importManager;
     }
 
     public ClassMeta enterClass(ClassDefinitionContext ctx) {
         var className = ctx.IDENTIFIER().getText();
-        classMeta = classMetaMap.get(className);
+        classMeta = classMetaManager.resolveClass(className);
 
         if (classMeta == null) {
             throw new CompilationException("could not find class in source set: " + className);
@@ -88,7 +54,7 @@ public class ScopeManager {
         locals.clear();
 
         // TODO: Use class meta to get this
-        var methodMeta = MethodMeta.fromContext(this, ctx);
+        var methodMeta = MethodMeta.fromContext(importManager, ctx);
         staticMethod = methodMeta.isStatic();
 
         if (!staticMethod) {
@@ -137,7 +103,7 @@ public class ScopeManager {
             if (classMeta.baseClassName() == null) {
                 return null;
             }
-            return getField(resolveClass(classMeta.baseClassName()), name);
+            return getField(classMetaManager.resolveClass(classMeta.baseClassName()), name);
         }
         return currentClassFieldMeta;
     }
@@ -154,7 +120,7 @@ public class ScopeManager {
         if (currentClassMethodMeta == null) {
             if (classMeta.iface()) {
                 for (String interfaze : classMeta.interfaces()) {
-                    var methodMeta = getMethod(resolveClass(interfaze), name, parameterTypes);
+                    var methodMeta = getMethod(classMetaManager.resolveClass(interfaze), name, parameterTypes);
                     if (methodMeta != null) {
                         return methodMeta;
                     }
@@ -163,7 +129,7 @@ public class ScopeManager {
                 if (classMeta.baseClassName() == null) {
                     return null;
                 }
-                return getMethod(resolveClass(classMeta.baseClassName()), name, parameterTypes);
+                return getMethod(classMetaManager.resolveClass(classMeta.baseClassName()), name, parameterTypes);
             }
         }
         return currentClassMethodMeta;

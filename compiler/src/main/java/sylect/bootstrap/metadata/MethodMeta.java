@@ -4,7 +4,7 @@ package sylect.bootstrap.metadata;
 
 import sylect.SylectParser.MethodDefinitionContext;
 import sylect.CompilationException;
-import sylect.bootstrap.ScopeManager;
+import sylect.bootstrap.context.ImportManager;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -15,7 +15,8 @@ public record MethodMeta(
         TypeMeta returnType,
         List<ParameterMeta> parameters
 ) {
-    public static MethodMeta fromContext(ScopeManager scopeManager, MethodDefinitionContext ctx) {
+
+    public static MethodMeta fromContext(ImportManager importManager, MethodDefinitionContext ctx) {
         var name = ctx.IDENTIFIER().getText();
         if ("constructor".equals(name)) {
             name = "<init>";
@@ -30,10 +31,10 @@ public record MethodMeta(
             throw new CompilationException("Static method cannot be abstract");
         }
 
-        var returnType = TypeMeta.fromContext(scopeManager, ctx.type());
+        var returnType = TypeMeta.fromContext(importManager, ctx.type());
         var parameters = ctx.parameter().stream()
                 .map(parameter -> new ParameterMeta(parameter.IDENTIFIER().getText(),
-                        TypeMeta.fromContext(scopeManager, parameter.type())))
+                        TypeMeta.fromContext(importManager, parameter.type())))
                 .collect(Collectors.toList());
         return new MethodMeta(name, isStatic, isNative, isAbstract, returnType, parameters);
     }

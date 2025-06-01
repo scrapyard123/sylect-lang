@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
@@ -31,44 +30,47 @@ public class SylectCompilerRunner {
         var compiler = new BootstrapCompiler(classLoader, target);
 
         logger.accept("Sources: " + sources);
-        var sourceTrees = new ArrayList<Pair<Path, SylectParser.ProgramContext>>();
-        for (var source : sources) {
-            if (!Files.exists(source)) {
-                logger.accept("Broken path: " + source);
-                continue;
-            }
+        var sourceTrees = sources.stream()
+                .parallel()
+                .filter(Files::exists)
+                .flatMap(source -> {
+                    try {
+                        return Files.walk(source)
+                                .filter(path -> path.getFileName().toString().endsWith(SOURCE_FILE_EXTENSION))
+                                .map(sourceFile -> {
+                                    try {
+                                        return new Pair<>(
+                                                source.equals(sourceFile) ? sourceFile : source.relativize(sourceFile),
+                                                compiler.generateTree(Files.readString(sourceFile)));
+                                    } catch (IOException e) {
+                                        throw new CompilationException("failed to read source: " + source, e);
+                                    }
+                                });
+                    } catch (IOException e) {
+                        throw new CompilationException("failed to walk source: " + source, e);
+                    }
+                })
+                .toList();
 
-            try (var fileStream = Files.walk(source)) {
-                var sourceFileList = fileStream
-                        .filter(path -> path.getFileName().toString().endsWith(SOURCE_FILE_EXTENSION))
-                        .toList();
-                for (var sourceFile : sourceFileList) {
-                    sourceTrees.add(new Pair<>(
-                            source.equals(sourceFile) ? sourceFile : source.relativize(sourceFile),
-                            compiler.generateTree(Files.readString(sourceFile))));
-                }
-            } catch (IOException e) {
-                throw new CompilationException("failed to parse sources", e);
-            }
-        }
+        sourceTrees.stream()
+                .parallel()
+                .forEach(pair -> {
+                    var sourceFile = pair.left();
 
-        for (var pair : sourceTrees) {
-            var sourceFile = pair.left();
+                    var classFileName = sourceFile.getFileName().toString()
+                            .replaceAll("(?i)\\" + SOURCE_FILE_EXTENSION + "$", ".class");
+                    var classPath = sourceFile.getParent() == null ? targetDir : targetDir.resolve(sourceFile.getParent());
+                    var classFilePath = classPath.resolve(classFileName);
 
-            var classFileName = sourceFile.getFileName().toString()
-                    .replaceAll("(?i)\\" + SOURCE_FILE_EXTENSION + "$", ".class");
-            var classPath = sourceFile.getParent() == null ? targetDir : targetDir.resolve(sourceFile.getParent());
-            var classFilePath = classPath.resolve(classFileName);
+                    try {
+                        Files.createDirectories(classPath);
 
-            try {
-                Files.createDirectories(classPath);
-
-                logger.accept("Compiling: " + sourceFile + " -> " + classFilePath);
-                Files.write(classFilePath, compiler.compile(pair.right()));
-            } catch (IOException e) {
-                throw new CompilationException("could not write: " + classFilePath);
-            }
-        }
+                        logger.accept("Compiling: " + sourceFile + " -> " + classFilePath);
+                        Files.write(classFilePath, compiler.compile(pair.right()));
+                    } catch (IOException e) {
+                        throw new CompilationException("could not write: " + classFilePath);
+                    }
+                });
     }
 
     public static void main(String[] args) {

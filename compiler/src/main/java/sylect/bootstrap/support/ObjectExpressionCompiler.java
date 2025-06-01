@@ -9,7 +9,9 @@ import sylect.CompilationException;
 import sylect.SylectParser.ExpressionContext;
 import sylect.SylectParser.ObjectExpressionContext;
 import sylect.SylectParser.ObjectTermContext;
-import sylect.bootstrap.ScopeManager;
+import sylect.bootstrap.context.ClassMetaManager;
+import sylect.bootstrap.context.ImportManager;
+import sylect.bootstrap.context.ScopeManager;
 import sylect.bootstrap.metadata.TypeMeta;
 import sylect.bootstrap.metadata.expression.CallTargetMeta;
 import sylect.bootstrap.metadata.expression.ObjectMeta;
@@ -24,11 +26,23 @@ import java.util.Objects;
  * anything on stack, if it's an object/value - it's stored at the top.
  */
 public class ObjectExpressionCompiler {
+
+    private final ClassMetaManager classMetaManager;
+    private final ImportManager importManager;
     private final ScopeManager scopeManager;
+
     private final MethodVisitor mv;
 
-    public ObjectExpressionCompiler(ScopeManager scopeManager, MethodVisitor mv) {
+    public ObjectExpressionCompiler(
+            ClassMetaManager classMetaManager,
+            ImportManager importManager,
+            ScopeManager scopeManager,
+            MethodVisitor mv) {
+
+        this.classMetaManager = Objects.requireNonNull(classMetaManager);
+        this.importManager = Objects.requireNonNull(importManager);
         this.scopeManager = Objects.requireNonNull(scopeManager);
+
         this.mv = Objects.requireNonNull(mv);
     }
 
@@ -93,7 +107,7 @@ public class ObjectExpressionCompiler {
         // Try to find corresponding local field
         var field = scopeManager.getField(identifier);
         if (field == null) {
-            var classMeta = scopeManager.resolveClass(scopeManager.resolveImport(identifier));
+            var classMeta = classMetaManager.resolveClass(importManager.resolveImport(identifier));
             return new ObjectMeta(classMeta, null);
         }
 
@@ -132,7 +146,7 @@ public class ObjectExpressionCompiler {
                 throw new CompilationException("accessing field on primitive type");
             }
 
-            var classMeta = scopeManager.resolveClass(objectMeta.typeMeta().className());
+            var classMeta = classMetaManager.resolveClass(objectMeta.typeMeta().className());
             var field = scopeManager.getField(classMeta, identifier);
             if (field == null) {
                 throw new CompilationException("unknown field: " + identifier + " in " + classMeta);
@@ -216,7 +230,7 @@ public class ObjectExpressionCompiler {
         if (objectMeta == null) {
             // If identifier is a valid class name - we are constructing an object
             try {
-                var classMeta = scopeManager.resolveClass(scopeManager.resolveImport(identifier));
+                var classMeta = classMetaManager.resolveClass(importManager.resolveImport(identifier));
                 mv.visitTypeInsn(Opcodes.NEW, classMeta.name());
                 mv.visitInsn(Opcodes.DUP); // one for constructor call and one for next chain terms
 
@@ -239,7 +253,7 @@ public class ObjectExpressionCompiler {
             // When "super" keyword is present - search for target method in base class instead
             var classMeta = scopeManager.getClassMeta();
             if (isSuper) {
-                classMeta = scopeManager.resolveClass(classMeta.baseClassName());
+                classMeta = classMetaManager.resolveClass(classMeta.baseClassName());
             }
 
             return new CallTargetMeta(classMeta, isConstructor, false, isConstructor || isSuper);
@@ -260,7 +274,7 @@ public class ObjectExpressionCompiler {
                 }
 
                 return new CallTargetMeta(
-                        scopeManager.resolveClass(objectMeta.typeMeta().className()),
+                        classMetaManager.resolveClass(objectMeta.typeMeta().className()),
                         false, false, false);
             }
 
@@ -270,7 +284,8 @@ public class ObjectExpressionCompiler {
 
     private List<TypeMeta> compileArguments(List<ExpressionContext> arguments) {
         return arguments.stream()
-                .map(expressionCtx -> new ExpressionCompiler(scopeManager, mv).compile(expressionCtx))
+                .map(expressionCtx -> new ExpressionCompiler(classMetaManager, importManager, scopeManager, mv)
+                        .compile(expressionCtx))
                 .toList();
     }
 }
