@@ -132,11 +132,11 @@ public class MathExpressionCompiler {
 
                 // If stack top is zero - place 1, otherwise place 0
                 mv.visitJumpInsn(Opcodes.IFEQ, whenZero);
-                mv.visitLdcInsn(0);
+                mv.visitInsn(Opcodes.ICONST_0);
                 mv.visitJumpInsn(Opcodes.GOTO, otherCode);
 
                 mv.visitLabel(whenZero);
-                mv.visitLdcInsn(1);
+                mv.visitInsn(Opcodes.ICONST_1);
 
                 mv.visitLabel(otherCode);
 
@@ -343,10 +343,10 @@ public class MathExpressionCompiler {
         var otherCode = new Label();
 
         mv.visitJumpInsn(op, target);
-        mv.visitLdcInsn(0);
+        mv.visitInsn(Opcodes.ICONST_0);
         mv.visitJumpInsn(Opcodes.GOTO, otherCode);
         mv.visitLabel(target);
-        mv.visitLdcInsn(1);
+        mv.visitInsn(Opcodes.ICONST_1);
         mv.visitLabel(otherCode);
     }
 }

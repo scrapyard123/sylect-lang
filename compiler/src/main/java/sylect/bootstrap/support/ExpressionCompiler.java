@@ -56,11 +56,11 @@ public class ExpressionCompiler {
         }
 
         // If expression is still false
-        mv.visitLdcInsn(0);
+        mv.visitInsn(Opcodes.ICONST_0);
         mv.visitJumpInsn(Opcodes.GOTO, otherCodeLabel);
 
         mv.visitLabel(trueLabel);
-        mv.visitLdcInsn(1);
+        mv.visitInsn(Opcodes.ICONST_1);
 
         mv.visitLabel(otherCodeLabel);
 
@@ -90,11 +90,11 @@ public class ExpressionCompiler {
         }
 
         // If expression is still true
-        mv.visitLdcInsn(1);
+        mv.visitInsn(Opcodes.ICONST_1);
         mv.visitJumpInsn(Opcodes.GOTO, otherCodeLabel);
 
         mv.visitLabel(falseLabel);
-        mv.visitLdcInsn(0);
+        mv.visitInsn(Opcodes.ICONST_0);
 
         mv.visitLabel(otherCodeLabel);
 
