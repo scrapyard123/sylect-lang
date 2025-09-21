@@ -27,7 +27,7 @@ public class SylectCompilerRunner {
             List<Path> sources, Path targetDir,
             Consumer<String> logger) {
         logger.accept("JVM Target: " + target);
-        var compiler = new BootstrapCompiler(classLoader, target);
+        var compiler = (SylectCompiler) new BootstrapCompiler(classLoader, target);
 
         logger.accept("Sources: " + sources);
         var sourceTrees = sources.stream()
@@ -86,7 +86,7 @@ public class SylectCompilerRunner {
         var pwd = System.getProperty("user.dir");
 
         compileSourceTrees(
-                BootstrapCompiler.class.getClassLoader(),
+                SylectCompiler.class.getClassLoader(),
                 target,
                 Arrays.stream(args).map(Paths::get).map(Path::toAbsolutePath).toList(),
                 Paths.get(pwd).toAbsolutePath(),

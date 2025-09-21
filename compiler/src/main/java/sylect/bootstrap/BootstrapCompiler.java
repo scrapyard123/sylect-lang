@@ -26,6 +26,7 @@ public class BootstrapCompiler implements SylectCompiler {
         this.classMetaManager = new ClassMetaManager(classLoader);
     }
 
+    @Override
     public byte[] compile(ProgramContext tree) {
         var walker = new ParseTreeWalker();
 
@@ -34,6 +35,7 @@ public class BootstrapCompiler implements SylectCompiler {
         return bytecodeTargetListener.getBytecode();
     }
 
+    @Override
     public ProgramContext generateTree(String source) {
         var errorListener = new ExceptionErrorListener();
 
@@ -49,8 +51,8 @@ public class BootstrapCompiler implements SylectCompiler {
 
         var tree = parser.program();
 
-        var partialClassMeta = ClassMeta.fromSylectTree(tree);
-        classMetaManager.addToSourceSet(partialClassMeta);
+        var classMeta = ClassMeta.fromSylectTree(tree);
+        classMetaManager.addToSourceSet(classMeta);
 
         return tree;
     }
